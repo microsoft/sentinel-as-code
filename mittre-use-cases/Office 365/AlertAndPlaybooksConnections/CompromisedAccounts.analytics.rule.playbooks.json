@@ -1,0 +1,5 @@
+{
+    "ActionId" : "NonValidIPsOffice365",
+    "AlertRuleId" : "c75150d3-73be-4bad-884d-58a2c0146569",
+    "Playbook" : "socdap-[settings('location').Id]m365exportcontent-playbook"
+}

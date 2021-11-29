@@ -1,0 +1,27 @@
+AlertRuleTemplateName: 
+Id: 363ae7ee-27ef-4861-be00-0deacce439f6
+Enabled: true
+DisplayName: Suspicious Resource deployment
+Description: Suspicious Resource deployment
+Query: "let szOperationNames = dynamic([\"Create or Update Virtual Machine\", \"Create Deployment\"]);\nlet starttime = 14d;\nlet endtime = 1d;\nlet RareCaller = AzureActivity\n| where TimeGenerated between (ago(starttime) .. ago(endtime))\n| where OperationName in~ (szOperationNames)\n| project ResourceGroup, Caller, OperationName, CallerIpAddress\n| join kind=rightantisemi (\nAzureActivity\n| where TimeGenerated > ago(endtime)\n| where OperationName in~ (szOperationNames)\n| summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), ActivityStatus = makeset(ActivityStatus), OperationIds = makeset(OperationId), CallerIpAddress = makeset(CallerIpAddress) \nby ResourceId, Caller, OperationName, Resource, ResourceGroup\n) on Caller, ResourceGroup \n| mvexpand CallerIpAddress\n| where isnotempty(CallerIpAddress);\nlet Counts = RareCaller | summarize ActivityCountByCaller = count() by Caller;\nRareCaller | join kind= inner (Counts) on Caller | project-away Caller1\n| extend timestamp = StartTimeUtc, AccountCustomEntity = Caller, IPCustomEntity = tostring(CallerIpAddress)\n| sort by ActivityCountByCaller desc nulls last"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: 
+- Impact
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

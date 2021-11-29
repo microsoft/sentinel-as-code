@@ -1,0 +1,56 @@
+AlertRuleTemplateName: 
+Id: efbbe4c4-d8bc-4361-b5ae-b670b460ff3f
+Enabled: true
+DisplayName: SQL Injection
+Description: This attack exploits target software that constructs SQL statements based on user input. An attacker crafts input strings so that when the target software constructs SQL statements based on the input, the resulting SQL statement performs actions other than those the application intended. SQL Injection results from failure of the application to appropriately validate input. When specially crafted user-controlled input consisting of SQL syntax is used without proper validation as part of SQL queries, it is possible to glean information from the database in ways not envisaged during application design. Depending upon the database and the design of the application, it may also be possible to leverage injection to have the database execute system-related commands of the attackers' choice. SQL Injection enables an attacker to talk directly to the database, thus bypassing the application completely. Successful injection can cause information disclosure as well as ability to add or modify data in the database.
+Query: |-
+  SecurityAlert
+  | where ProductName == "Azure Security Center"
+  | where CompromisedEntity has "SQL"
+  | where AlertType has "PotentialSqlInjection"
+  | where ResourceId has "Microsoft.Sql/servers"
+  | where parse_json(ExtendedProperties).resourceType == "SQL Database"
+  | extend Database_ = tostring(parse_json(ExtendedProperties).Database)
+  | extend Server_ = tostring(parse_json(ExtendedProperties).Server)
+  | extend IP_address_ = tostring(parse_json(ExtendedProperties).["IP address"])
+  | extend Principal_name_ = tostring(parse_json(ExtendedProperties).["Principal name"])
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT6M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- DefenseEvasion
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings:
+- entityType: AzureResource
+  fieldMappings:
+  - identifier: ResourceId
+    columnName: ResourceId
+- entityType: CloudApplication
+  fieldMappings:
+  - identifier: Name
+    columnName: Server_
+  - identifier: InstanceName
+    columnName: Database_
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IP_address_
+- entityType: Account
+  fieldMappings:
+  - identifier: Name
+    columnName: Principal_name_
+Kind: Scheduled

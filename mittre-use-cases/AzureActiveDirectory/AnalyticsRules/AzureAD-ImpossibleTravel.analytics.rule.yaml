@@ -1,0 +1,36 @@
+AlertRuleTemplateName: 
+Id: c75150d3-73be-4bad-884d-58a2c0146569
+Enabled: true
+DisplayName: Azure AD - Impossible Travel
+Description: ""
+Query: |2-
+    SigninLogs
+    | where ResultType == 0
+    | summarize CountOfLocations = dcount(Location), ips = make_list(IPAddress) ,Locations = make_set(Location), BurstStartTime = min(TimeGenerated), BurstEndTime = max(TimeGenerated) by UserPrincipalName
+    | where CountOfLocations > 1
+    | extend timestamp = BurstStartTime, AccountCustomEntity = UserPrincipalName
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- InitialAccess
+- DefenseEvasion
+- CredentialAccess
+- PreAttack
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

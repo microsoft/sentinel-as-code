@@ -1,0 +1,30 @@
+AlertRuleTemplateName: 
+Id: 3170d27d-0a2e-4bb1-8dc7-05a39fc8e3f4
+Enabled: true
+DisplayName: Exchange AuditLog disabled
+Description: |-
+  Identifies when the exchange audit logging has been disabled which may be an adversary attempt
+    to evade detection or avoid other defenses.
+Query: "OfficeActivity\r\n  | where UserType in~ (\"Admin\",\"DcAdmin\") \r\n  // Only admin or global-admin can disable audit logging\r\n  | where Operation =~ \"Set-AdminAuditLogConfig\" \r\n  | extend AdminAuditLogEnabledValue = tostring(parse_json(tostring(parse_json(tostring(array_slice(parse_json(Parameters),3,3)))[0])).Value)\r\n  | where AdminAuditLogEnabledValue =~ \"False\" \r\n  | summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), OperationCount = count() by Operation, UserType, UserId, ClientIP, ResultStatus, Parameters, AdminAuditLogEnabledValue\r\n  | extend timestamp = StartTimeUtc, AccountCustomEntity = UserId, IPCustomEntity = ClientIP "
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: P1D
+QueryPeriod: P1D
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- DefenseEvasion
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

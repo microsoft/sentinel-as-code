@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "value": "socdap-[settings('location').Id]compromisedaccount-playbook"
+        },
+        "SentinelConnectionId": {
+            "value": "[settings('azuresentinel').Id]"
+        },
+        "SentinelManagedIdentity": {
+            "value": "[settings('managedidentity').Name]"
+        },
+        "AzureADConnectionId": {
+            "value": "[settings('azuread').Id]"
+        },
+        "Microsoft365ConnectionId": {
+            "value": "[settings('office365').Id]"
+        },
+        "Location": {
+            "value": "[settings('location').Name]"
+        }
+    }
+}

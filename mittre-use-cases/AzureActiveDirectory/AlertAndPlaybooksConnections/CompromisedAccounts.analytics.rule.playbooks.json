@@ -1,0 +1,9 @@
+{
+    "ActionId" : "NonValidIPsAzureAD",
+    "AlertRuleId" : "c75150d3-73be-4bad-884d-58a2c0146569",
+    "Playbook" : "socdap-wecompromisedaccount-playbook"
+}
+
+
+
+

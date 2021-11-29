@@ -1,0 +1,19 @@
+AlertRuleTemplateName: f71aba3d-28fb-450b-b192-4e76a83015c8
+Id: c2d0b297-720b-4b47-bf5f-0bf872f27a1b
+DisplayName: Advanced Multistage Attack Detection
+Description: |-
+  Using Fusion technology based on machine learning, Azure Sentinel automatically detects multistage attacks by identifying combinations of anomalous behaviors and suspicious activities observed at various stages of the kill chain. On the basis of these discoveries, Azure Sentinel generates incidents that would otherwise be very difficult to catch. By design, these incidents are low-volume, high-fidelity, and high-severity, which is why this detection is turned ON by default.
+
+  There are a total of 90 Fusion incident types detected by Azure Sentinel.
+
+  To detect these multistage attacks, the following data connectors must be configured:
+  - Azure Active Directory Identity Protection.
+  - Microsoft Cloud App Security.
+  - Microsoft Defender for Endpoint.
+  - Azure Defender.
+  - Palo Alto Networks.
+
+  For a full list and description of each scenario that is supported for these multistage attacks, go to https://aka.ms/SentinelFusion.
+Severity: High
+Enabled: true
+Kind: Fusion

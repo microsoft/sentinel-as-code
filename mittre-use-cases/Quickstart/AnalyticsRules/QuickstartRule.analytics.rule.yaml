@@ -1,0 +1,30 @@
+AlertRuleTemplateName: 
+Id: d7278191-3928-4aea-805d-e3a88e1abeb3
+Enabled: true
+DisplayName: Quickstart Rule
+Description: Description text
+Query: |+
+  SigninLogs
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5H
+QueryPeriod: PT5H
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- Execution
+- DefenseEvasion
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

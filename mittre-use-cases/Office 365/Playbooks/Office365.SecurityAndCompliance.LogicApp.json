@@ -1,0 +1,149 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "Name": {
+            "type": "string"
+        },
+        "AutomationAccount": {
+            "type": "string"
+        },
+        "SentinelConnectionId": {
+            "type": "string"
+        },
+        "SentinelManagedIdentity": {
+            "type": "string"
+        },
+        "Location": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "automationAccount": "[parameters('AutomationAccount')]",
+        "workflowName": "[parameters('Name')]",
+        "workflowLocation": "[parameters('Location')]",
+        "path" : "[concat('/subscriptions/@{encodeURIComponent(''', subscription().subscriptionId, ''')}/resourceGroups/@{encodeURIComponent(''', resourceGroup().name, ''')}/providers/Microsoft.Automation/automationAccounts/@{encodeURIComponent(''', variables('automationAccount'),''')}/jobs')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2019-05-01",
+            "name": "[variables('workflowName')]",
+            "location": "[variables('workflowLocation')]",
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('SentinelManagedIdentity'))]": {}
+                }
+            },
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_a_response_to_an_Azure_Sentinel_alert_is_triggered": {
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "body": {
+                                    "callback_url": "@{listCallbackUrl()}"
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "path": "/subscribe"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Entities_-_Get_Accounts": {
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": "@triggerBody()?['Entities']",
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "path": "/entities/account"
+                            }
+                        },
+                        "For_each": {
+                            "foreach": "@body('Entities_-_Get_Accounts')?['Accounts']",
+                            "actions": {
+                                "Create_job": {
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "body": {
+                                            "properties": {
+                                                "parameters": {
+                                                    "AccountUserPrincipalName": "@{concat(items('For_each')?['Name'], '@', items('for_each')?['UPNSuffix'])}"
+                                                }
+                                            }
+                                        },
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azureautomation']['connectionId']"
+                                            }
+                                        },
+                                        "method": "put",
+                                        "path": "[variables('path')]",
+                                        "queries": {
+                                            "runbookName": "Office365_ComplianceSearch_CreateAndRun",
+                                            "wait": true,
+                                            "x-ms-api-version": "2015-10-31"
+                                        }
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Entities_-_Get_Accounts": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "azureautomation": {
+                                "connectionId": "[parameters('AutomationAccount')]",
+                                "connectionName": "azureautomation",
+                                "connectionProperties": {
+                                    "authentication": {
+                                        "identity": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('SentinelManagedIdentity'))]",
+                                        "type": "ManagedServiceIdentity"
+                                    }
+                                },
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/azureautomation')]"
+                            },
+                            "azuresentinel": {
+                                "connectionId": "[parameters('SentinelConnectionId')]",
+                                "connectionName": "azureautomation",
+                                "connectionProperties": {
+                                    "authentication": {
+                                        "identity": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('SentinelManagedIdentity'))]",
+                                        "type": "ManagedServiceIdentity"
+                                    }
+                                },
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('Location'), '/managedApis/azuresentinel')]"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,27 @@
+AlertRuleTemplateName: 
+Id: 142171b9-e3b1-4d4a-9587-de7afb640eed
+Enabled: true
+DisplayName: Attempts to sign in to disabled accounts by account name
+Description: Attempts to sign in to disabled accounts by account name
+Query: "let timeRange = 14d;\nSigninLogs \n| where TimeGenerated >= ago(timeRange)\n| where ResultType == \"50057\" \n| where ResultDescription == \"User account is disabled. The account has been disabled by an administrator.\" \n| summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), count() by AppDisplayName, UserPrincipalName\n| extend timestamp = StartTimeUtc, AccountCustomEntity = UserPrincipalName\n| order by count_ desc"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- CredentialAccess
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

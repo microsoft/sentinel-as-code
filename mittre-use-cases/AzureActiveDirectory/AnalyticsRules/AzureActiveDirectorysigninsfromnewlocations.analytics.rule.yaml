@@ -1,0 +1,28 @@
+AlertRuleTemplateName: 
+Id: 378426db-f836-408f-a362-afc2e706d345
+Enabled: true
+DisplayName: Azure Active Directory signins from new locations
+Description: Azure Active Directory signins from new locations
+Query: "let starttime = 14d;\nlet endtime = 1d;\nlet countThreshold = 1;\nSigninLogs\n| where TimeGenerated >= ago(endtime)\n| summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), perIdentityAuthCount = count() \nby Identity, locationString = strcat(tostring(LocationDetails[\"countryOrRegion\"]), \"/\", tostring(LocationDetails[\"state\"]), \"/\", \ntostring(LocationDetails[\"city\"]), \";\" , tostring(LocationDetails[\"geoCoordinates\"]))\n| summarize StartTimeUtc = min(StartTimeUtc), EndTimeUtc = max(EndTimeUtc), distinctAccountCount = count(), identityList=makeset(Identity) by locationString\n| extend identityList = iff(distinctAccountCount<10, identityList, \"multiple (>10)\")\n| join kind= anti (\nSigninLogs\n  | where TimeGenerated >= ago(starttime) and TimeGenerated < ago(endtime)\n  | project locationString= strcat(tostring(LocationDetails[\"countryOrRegion\"]), \"/\", tostring(LocationDetails[\"state\"]), \"/\", \n  tostring(LocationDetails[\"city\"]), \";\" , tostring(LocationDetails[\"geoCoordinates\"]))\n  | summarize priorCount = count() by locationString\n) \non locationString\n// select threshold above which #new accounts from a new location is deemed suspicious\n| where distinctAccountCount > countThreshold\n| extend timestamp = StartTimeUtc"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: 
+- InitialAccess
+- CredentialAccess
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

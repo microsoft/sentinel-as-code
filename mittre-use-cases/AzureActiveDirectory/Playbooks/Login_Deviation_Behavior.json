@@ -1,0 +1,379 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "emailNotification": {
+            "type": "string"
+        },
+        "azureADConnectionId": {
+            "type": "string"
+        },
+        "sentinelConnectionId": {
+            "type": "string"
+        },
+        "sentinelManagedIdentity": {
+            "type": "string"
+        },
+        "keyVaultConnectionId": {
+            "type": "string"
+        },
+        "microsoft365ConnectionId": {
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('name')]",
+            "location": "[parameters('location')]",
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('SentinelManagedIdentity'))]": {}
+                }
+            },
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_a_response_to_an_Azure_Sentinel_alert_is_triggered": {
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "body": {
+                                    "callback_url": "@{listCallbackUrl()}"
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "path": "/subscribe"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Alert_-_Get_incident": {
+                            "runAfter": {},
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/Incidents/subscriptions/@{encodeURIComponent(triggerBody()?['WorkspaceSubscriptionId'])}/resourceGroups/@{encodeURIComponent(triggerBody()?['WorkspaceResourceGroup'])}/workspaces/@{encodeURIComponent(triggerBody()?['WorkspaceId'])}/alerts/@{encodeURIComponent(triggerBody()?['SystemAlertId'])}"
+                            }
+                        },
+                        "Entities_-_Get_Accounts": {
+                            "runAfter": {
+                                "Alert_-_Get_incident": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": "@triggerBody()?['Entities']",
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "path": "/entities/account"
+                            }
+                        },
+                        "For_each": {
+                            "foreach": "@body('Entities_-_Get_Accounts')?['Accounts']",
+                            "actions": {
+                                "Condition": {
+                                    "actions": {
+                                        "Add_comment_to_incident_(V3)": {
+                                            "runAfter": {
+                                                "Send_an_email_(V2)_2": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "ApiConnection",
+                                            "inputs": {
+                                                "body": {
+                                                    "incidentArmId": "@body('Alert_-_Get_incident')?['id']",
+                                                    "message": "<p>The following actions were taken to to account @{body('Get_user')?['id']} :<br>\n</p>\n<ul>\n  <li>Terminate all active sessions</li>\n  <li>Password Change forced</li>\n</ul>\n<p><br>\nThis incident will be automatically closed</p>"
+                                                },
+                                                "host": {
+                                                    "connection": {
+                                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                                    }
+                                                },
+                                                "method": "post",
+                                                "path": "/Incidents/Comment"
+                                            }
+                                        },
+                                        "Send_an_email_(V2)_2": {
+                                            "runAfter": {},
+                                            "type": "ApiConnection",
+                                            "inputs": {
+                                                "body": {
+                                                    "Body": "<p>Dear @{body('Get_user')?['givenName']}<br>\n<br>\nWe have detected unusual activiy from the account (@{body('Get_user')?['userPrincipalName']}).<br>\n<br>\nRight now, and as preventive counter measure, all your active sessions will be terminated and you will be prompted to change your password.<br>\n<br>\nIf you need more assistance please feel fre to reach IT.<br>\n<br>\nTruly yours<br>\nThe IT Guy<br>\n</p>",
+                                                    "Subject": "Atypical User Account behaviour",
+                                                    "To": "[concat('@{body(''Get_user'')?[''mail'']};', parameters('emailNotification'))]"
+                                                },
+                                                "host": {
+                                                    "connection": {
+                                                        "name": "@parameters('$connections')['microsoft365']['connectionId']"
+                                                    }
+                                                },
+                                                "method": "post",
+                                                "path": "/v2/Mail"
+                                            }
+                                        },
+                                        "Update_incident": {
+                                            "runAfter": {
+                                                "Add_comment_to_incident_(V3)": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "ApiConnection",
+                                            "inputs": {
+                                                "body": {
+                                                    "classification": {
+                                                        "ClassificationAndReason": "True Positive - Suspicious Activity",
+                                                        "ClassificationReasonText": "Automatically closed"
+                                                    },
+                                                    "incidentArmId": "@body('Alert_-_Get_incident')?['id']",
+                                                    "severity": "Medium",
+                                                    "status": "Closed"
+                                                },
+                                                "host": {
+                                                    "connection": {
+                                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                                    }
+                                                },
+                                                "method": "put",
+                                                "path": "/Incidents"
+                                            }
+                                        }
+                                    },
+                                    "runAfter": {
+                                        "HTTP": [
+                                            "Succeeded"
+                                        ],
+                                        "Refresh_tokens": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "else": {
+                                        "actions": {
+                                            "Add_comment_to_incident_(V3)_2": {
+                                                "runAfter": {
+                                                    "Send_an_email_(V2)": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "ApiConnection",
+                                                "inputs": {
+                                                    "body": {
+                                                        "incidentArmId": "@body('Alert_-_Get_incident')?['id']",
+                                                        "message": "<p>The following actions failed to aply to account @{body('Get_user')?['id']} :<br>\n</p>\n<ul>\n  <li>Terminate all active sessionsPassword Change forced</li>\n  <li>This incident will be automatically closed</li>\n</ul>\n<p><br></p>\n<p>This incident severity will be raised for manual intervention</p>"
+                                                    },
+                                                    "host": {
+                                                        "connection": {
+                                                            "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                                        }
+                                                    },
+                                                    "method": "post",
+                                                    "path": "/Incidents/Comment"
+                                                }
+                                            },
+                                            "Send_an_email_(V2)": {
+                                                "runAfter": {},
+                                                "type": "ApiConnection",
+                                                "inputs": {
+                                                    "body": {
+                                                        "Body": "<p>The mitigation procedure for Sentinel Alert @{triggerBody()?['ProviderAlertId']}, for the user @{body('Get_user')?['userPrincipalName']}, has failed and need to be implemented as soon as possible.<br>\n<br>\nPlease terminate all active sessions for the mentioned user and force password change inmediately.<br>\n<br>\nFor mor information go to: @{triggerBody()?['ExtendedLinks']}</p>",
+                                                        "Subject": "Atypical account behaviour mitigation failed",
+                                                        "To": "[parameters('emailNotification')]"
+                                                    },
+                                                    "host": {
+                                                        "connection": {
+                                                            "name": "@parameters('$connections')['microsoft365']['connectionId']"
+                                                        }
+                                                    },
+                                                    "method": "post",
+                                                    "path": "/v2/Mail"
+                                                }
+                                            },
+                                            "Update_incident_2": {
+                                                "runAfter": {
+                                                    "Add_comment_to_incident_(V3)_2": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "ApiConnection",
+                                                "inputs": {
+                                                    "body": {
+                                                        "incidentArmId": "@body('Alert_-_Get_incident')?['id']",
+                                                        "severity": "High",
+                                                        "status": "Active"
+                                                    },
+                                                    "host": {
+                                                        "connection": {
+                                                            "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                                        }
+                                                    },
+                                                    "method": "put",
+                                                    "path": "/Incidents"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "expression": {
+                                        "and": [
+                                            {
+                                                "equals": [
+                                                    "@outputs('HTTP')['statusCode']",
+                                                    204
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "type": "If"
+                                },
+                                "Get_secret": {
+                                    "runAfter": {
+                                        "Get_user": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['keyvault']['connectionId']"
+                                            }
+                                        },
+                                        "method": "get",
+                                        "path": "/secrets/@{encodeURIComponent('LogicApps')}/value"
+                                    }
+                                },
+                                "Get_user": {
+                                    "runAfter": {},
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azuread']['connectionId']"
+                                            }
+                                        },
+                                        "method": "get",
+                                        "path": "/v1.0/users/@{encodeURIComponent(concat(items('For_each')?['Name'], '@', items('For_each')?['UPNSuffix']))}"
+                                    }
+                                },
+                                "HTTP": {
+                                    "runAfter": {
+                                        "Get_secret": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Http",
+                                    "inputs": {
+                                        "authentication": {
+                                            "audience": "https://graph.microsoft.com",
+                                            "identity": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('sentinelManagedIdentity'))]",
+                                            "type": "ManagedServiceIdentity"
+                                        },
+                                        "body": {
+                                            "passwordProfile": {
+                                                "forceChangePasswordNextSignIn": true
+                                            }
+                                        },
+                                        "method": "PATCH",
+                                        "uri": "@{concat('https://graph.microsoft.com/v1.0/users/',body('Get_user')?['id'])}"
+                                    }
+                                },
+                                "Refresh_tokens": {
+                                    "runAfter": {
+                                        "Get_user": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azuread']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "path": "/v1.0/users/@{encodeURIComponent(body('Get_user')?['id'])}/revokeSignInSessions"
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Entities_-_Get_Accounts": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "azuresentinel": {
+                                "connectionId": "[parameters('sentinelConnectionId')]",
+                                "connectionName": "azuresentinel",
+                                "connectionProperties": {
+                                    "authentication": {
+                                        "identity": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('sentinelManagedIdentity'))]",
+                                        "type": "ManagedServiceIdentity"
+                                    }
+                                },
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/azuresentinel')]"
+                            },
+                            "keyvault": {
+                                "connectionId": "[parameters('keyVaultConnectionId')]",
+                                "connectionName": "keyvault",
+                                "connectionProperties": {
+                                    "authentication": {
+                                        "identity": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('sentinelManagedIdentity'))]",
+                                        "type": "ManagedServiceIdentity"
+                                    }
+                                },
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/keyvault')]"
+                            },
+                            "azuread": {
+                                "connectionId": "[parameters('azureADConnectionId')]",
+                                "connectionName": "azuread",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/azuread')]"
+                            },
+                            "microsoft365": {
+                                "connectionId": "[parameters('microsoft365ConnectionId')]",
+                                "connectionName": "microsoft365",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/microsoft365')]"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

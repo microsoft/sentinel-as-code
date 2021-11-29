@@ -1,0 +1,29 @@
+AlertRuleTemplateName: 
+Id: b55ebc27-68cb-4a26-acad-dde8d87ef041
+Enabled: true
+DisplayName: Suspicious Audit Configuration Policy Operations
+Description: ""
+Query: |-
+  OfficeActivity | where (Operation == "Remove-AuditConfigurationPolicy")
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT15M
+QueryPeriod: PT15M
+TriggerOperator: GreaterThan
+TriggerThreshold: 3
+Tactics:
+- Persistence
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: true
+    reopenClosedIncident: false
+    lookbackDuration: PT15M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

@@ -1,0 +1,39 @@
+AlertRuleTemplateName: 
+Id: 21850c6c-5b89-47e0-abf6-905b8200afa2
+Enabled: true
+DisplayName: Suspicious number of resource creation or deployment activities
+Description: |-
+  Indicates when an anomalous number of VM creations or deployment activities occur in Azure via the AzureActivity log.
+    The anomaly detection identifies activities that have occurred both since the start of the day 1 day ago and the start of the day 7 days ago.
+    The start of the day is considered 12am UTC time.
+Query: "let szOperationNames = dynamic([\"Create or Update Virtual Machine\", \"Create Deployment\"]);\r\n  let starttime = 7d;\r\n  let endtime = 1d;\r\n  AzureActivity\r\n  | where TimeGenerated between (startofday(ago(starttime)) .. startofday(ago(endtime)))\r\n  | where OperationName in~ (szOperationNames)\r\n  | summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), ActivityTimeStamp = makelist(TimeGenerated), ActivityStatus = makelist(ActivityStatus), \r\n  OperationIds = makelist(OperationId), CallerIpAddress = makelist(CallerIpAddress), CorrelationId = makelist(CorrelationId) \r\n  by ResourceId, Caller, OperationName, Resource, ResourceGroup\r\n  | mvexpand CallerIpAddress\r\n  | where isnotempty(CallerIpAddress)\r\n  | make-series dResourceCount=dcount(ResourceId)  default=0 on StartTimeUtc in range(startofday(ago(7d)), now(), 1d) \r\n  by Caller, tostring(ActivityTimeStamp), tostring(ActivityStatus), tostring(OperationIds), tostring(CallerIpAddress), tostring(CorrelationId), ResourceId, OperationName, Resource, ResourceGroup\r\n  | extend (RSquare,Slope,Variance,RVariance,Interception,LineFit)=series_fit_line(dResourceCount)\r\n  | where Slope > 0.2\r\n  | join kind=leftsemi (\r\n  // Last day's activity is anomalous\r\n  AzureActivity\r\n  | where TimeGenerated >= startofday(ago(endtime))\r\n  | where OperationName in~ (szOperationNames)\r\n  | summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), ActivityTimeStamp = makelist(TimeGenerated), ActivityStatus = makelist(ActivityStatus), \r\n  OperationIds = makelist(OperationId), CallerIpAddress = makelist(CallerIpAddress), CorrelationId = makelist(CorrelationId) \r\n  by ResourceId, Caller, OperationName, Resource, ResourceGroup\r\n  | mvexpand CallerIpAddress\r\n  | where isnotempty(CallerIpAddress)\r\n  | make-series dResourceCount=dcount(ResourceId)  default=0 on StartTimeUtc in range(startofday(ago(1d)), now(), 1d) \r\n  by Caller, tostring(ActivityTimeStamp), tostring(ActivityStatus), tostring(OperationIds), tostring(CallerIpAddress), tostring(CorrelationId), ResourceId, OperationName, Resource, ResourceGroup\r\n  | extend (RSquare,Slope,Variance,RVariance,Interception,LineFit)=series_fit_line(dResourceCount)\r\n  | where Slope > 0.2    \r\n  ) on Caller, CallerIpAddress        \r\n  | mvexpand todynamic(ActivityTimeStamp), todynamic(ActivityStatus), todynamic(OperationIds), todynamic(CorrelationId)\r\n  | extend timestamp = ActivityTimeStamp, AccountCustomEntity = Caller, IPCustomEntity = CallerIpAddress"
+SeveritiesFilter: 
+Severity: High
+QueryFrequency: P1D
+QueryPeriod: P7D
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- Impact
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings:
+- entityType: Account
+  fieldMappings:
+  - identifier: FullName
+    columnName: AccountCustomEntity
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+Kind: Scheduled

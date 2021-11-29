@@ -1,0 +1,27 @@
+AlertRuleTemplateName: 
+Id: 361678fa-94e9-433b-91c1-fd97d97e200c
+Enabled: true
+DisplayName: Login attempt by Blocked MFA user
+Description: Login attempt by Blocked MFA user
+Query: "let timeframe = 5m;\nAuditLogs \n| where TimeGenerated >= ago(timeframe) \n| where OperationName =~ \"Disable Strong Authentication\"\n| extend IPAddress = tostring(parse_json(tostring(InitiatedBy.user)).ipAddress) \n| extend InitiatedByUser = iff(isnotempty(tostring(parse_json(tostring(InitiatedBy.user)).userPrincipalName)), \n tostring(parse_json(tostring(InitiatedBy.user)).userPrincipalName), tostring(parse_json(tostring(InitiatedBy.app)).displayName))\n| extend Targetprop = todynamic(TargetResources)\n| extend TargetUser = tostring(Targetprop[0].userPrincipalName) \n| summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated) by User = TargetUser, InitiatedByUser , Operation = OperationName , CorrelationId, IPAddress, Category, Source = SourceSystem , AADTenantId, Type"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: 
+- InitialAccess
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

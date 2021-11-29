@@ -1,0 +1,11 @@
+AlertRuleTemplateName: ee1d718b-9ed9-4a71-90cd-a483a4f008df
+Id: d90a23e3-d0e2-4623-abc9-c6768a0f8970
+Enabled: true
+DisplayName: Create incidents based on Office 365 Advanced Threat Protection alerts
+Description: Create incidents based on all alerts generated in Office 365 Advanced Threat Protection
+SeveritiesFilter: 
+DisplayNamesExcludeFilter: 
+DisplayNamesFilter: 
+ProductFilter: Office 365 Advanced Threat Protection
+Tactics: 
+Kind: MicrosoftSecurityIncidentCreation

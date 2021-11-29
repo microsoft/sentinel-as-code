@@ -1,0 +1,45 @@
+AlertRuleTemplateName: 
+Id: de3c4f3c-8943-4eba-b58c-0cf78d589ef7
+Enabled: true
+DisplayName: SQL-security center alerts
+Description: ""
+Query: |-
+  SecurityAlert
+  | where ProductName == "Azure Security Center"
+  | where CompromisedEntity has "SQL"
+  | extend Client_IP_Address_ = tostring(parse_json(ExtendedProperties).["Client IP Address"])
+  | extend Client_Principal_Name_ = tostring(parse_json(ExtendedProperties).["Client Principal Name"])
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT6M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- Exfiltration
+EventGroupSettings:
+  aggregationKind: AlertPerResult
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings:
+- entityType: AzureResource
+  fieldMappings:
+  - identifier: ResourceId
+    columnName: ResourceId
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: Client_IP_Address_
+- entityType: Account
+  fieldMappings:
+  - identifier: AadUserId
+    columnName: Client_Principal_Name_
+Kind: Scheduled

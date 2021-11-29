@@ -1,0 +1,31 @@
+AlertRuleTemplateName: 
+Id: f34ce2f6-e444-43d5-aa8a-8196a588b0b2
+Enabled: true
+DisplayName: AppServices AV Scan with Infected Files
+Description: Identifies if an AV scan finds infected files in Azure App Services.
+Query: |-
+  let timeframe = ago(1d);
+    AppServiceAntivirusScanAuditLogs
+    | where NumberOfInfectedFiles > 0
+    | extend HostCustomEntity = _ResourceId, timestamp = TimeGenerated
+SeveritiesFilter: 
+Severity: Informational
+QueryFrequency: PT5H
+QueryPeriod: PT5H
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: []
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

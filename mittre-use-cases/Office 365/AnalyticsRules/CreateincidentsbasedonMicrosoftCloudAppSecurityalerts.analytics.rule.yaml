@@ -1,0 +1,13 @@
+AlertRuleTemplateName: b3cfc7c0-092c-481c-a55b-34a3979758cb
+Id: 23e6e9d9-cf57-4c0b-9e3b-add82ba40444
+Enabled: true
+DisplayName: Create incidents based on Microsoft Cloud App Security alerts
+Description: Create incidents based on all alerts generated in Microsoft Cloud App Security
+SeveritiesFilter:
+- Medium
+- High
+DisplayNamesExcludeFilter: 
+DisplayNamesFilter: 
+ProductFilter: Microsoft Cloud App Security
+Tactics: 
+Kind: MicrosoftSecurityIncidentCreation

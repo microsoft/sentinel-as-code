@@ -1,0 +1,18 @@
+AlertRuleTemplateName: 737a2ce1-70a3-4968-9e90-3e6aca836abf
+Id: c0563a32-e799-48af-8fe7-ff991d772c7c
+Enabled: true
+DisplayName: (Preview) Anomalous RDP Login Detections
+Description: |-
+  This detection uses machine learning (ML) to identify anomalous Remote Desktop Protocol (RDP) login activity, based on Windows Security Event data. Scenarios include:
+
+  *	Unusual IP - This IP address has not or has rarely been seen in last 30 days.
+  *	Unusual Geo - The IP address, city, country and ASN have not (or rarely) been seen in last 30 days.
+  *	New user - A new user logs in from an IP address and geo location, both or either of which are not expected to be seen in the last 30 days.
+
+  Allow 7 days after this alert is enabled for Azure Sentinel to build a profile of normal activity for your environment.	
+
+  This detection requires a specific configuration of the data source. [Learn more](https://docs.microsoft.com/en-us/azure/sentinel/connect-windows-security-events)
+Severity: Medium
+Tactics:
+- InitialAccess
+Kind: MLBehaviorAnalytics

@@ -1,0 +1,27 @@
+AlertRuleTemplateName: 
+Id: f384b9ee-f954-449e-88f0-25a9e4710719
+Enabled: true
+DisplayName: Attempts to sign in to disabled accounts by IP address
+Description: Attempts to sign in to disabled accounts by IP address
+Query: "let timeRange = 14d;\nSigninLogs \n| where TimeGenerated >= ago(timeRange)\n| where ResultType == \"50057\" \n| where ResultDescription == \"User account is disabled. The account has been disabled by an administrator.\" \n| summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), numberAccountsTargeted = dcount(UserPrincipalName), \nnumberApplicationsTargeted = dcount(AppDisplayName), accountSet = makeset(UserPrincipalName), applicationSet=makeset(AppDisplayName), \nnumberLoginAttempts = count() by IPAddress\n| extend timestamp = StartTimeUtc, IPCustomEntity = IPAddress\n| order by numberLoginAttempts desc"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: 
+- Persistence
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

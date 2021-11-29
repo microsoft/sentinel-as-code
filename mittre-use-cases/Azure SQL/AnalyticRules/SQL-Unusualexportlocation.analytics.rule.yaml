@@ -1,0 +1,55 @@
+AlertRuleTemplateName: 
+Id: d47169c8-6f99-49b5-839b-3d7c5e87a0ac
+Enabled: true
+DisplayName: SQL - Unusual export location
+Description: Someone has extracted a massive amount of data from your SQL Server to an unusual location.
+Query: |-
+  SecurityAlert
+  | where ProductName == "Azure Security Center"
+  | where CompromisedEntity has "SQL"
+  | where parse_json(ExtendedProperties).resourceType == "SQL Database"
+  | where AlertType has "DataExfiltration.ImportExportLocationAnomaly"
+  | extend Client_IP_Address_ = tostring(parse_json(ExtendedProperties).["Client IP Address"])
+  | extend Client_Application_ = tostring(parse_json(ExtendedProperties).["Client Application"])
+  | extend Client_Principal_Name_ = tostring(parse_json(ExtendedProperties).["Client Principal Name"])
+  | extend Storage_Name_ = tostring(parse_json(ExtendedProperties).["Storage Name"])
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT6M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- Exfiltration
+EventGroupSettings:
+  aggregationKind: AlertPerResult
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings:
+- entityType: AzureResource
+  fieldMappings:
+  - identifier: ResourceId
+    columnName: ResourceId
+- entityType: Account
+  fieldMappings:
+  - identifier: Name
+    columnName: Client_Principal_Name_
+- entityType: CloudApplication
+  fieldMappings:
+  - identifier: Name
+    columnName: Client_Application_
+  - identifier: InstanceName
+    columnName: Storage_Name_
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: Client_IP_Address_
+Kind: Scheduled

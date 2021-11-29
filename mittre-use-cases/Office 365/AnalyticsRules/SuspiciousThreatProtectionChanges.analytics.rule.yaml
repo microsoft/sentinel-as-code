@@ -1,0 +1,28 @@
+AlertRuleTemplateName: 
+Id: 56f6cb42-3025-433f-a5a3-1afc06c4cf02
+Enabled: true
+DisplayName: Suspicious Threat Protection Changes
+Description: ""
+Query: |-
+  OfficeActivity | where (Operation == "Disable-AntiPhishRule" or Operation == "Disable-SafeAttachmentRule" or Operation == "Disable-SafeLinksRule" or Operation == "Remove-AntiPhishPolicy" or Operation == "Remove-AntiPhishRule" or Operation == "Remove-SafeAttachmentPolicy" or Operation == "Remove-SafeAttachmentRule" or Operation == "Remove-SafeLinksPolicy" or Operation == "Remove-SafeLinksRule")
+SeveritiesFilter: 
+Severity: High
+QueryFrequency: PT1H
+QueryPeriod: PT1H
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: []
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

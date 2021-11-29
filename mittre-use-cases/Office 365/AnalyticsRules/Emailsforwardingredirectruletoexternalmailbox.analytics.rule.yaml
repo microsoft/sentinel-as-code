@@ -1,0 +1,28 @@
+AlertRuleTemplateName: 
+Id: fafe9bc0-6615-40d4-9d92-fd7fe5132038
+Enabled: true
+DisplayName: Emails forwarding / redirect rule to external mailbox
+Description: ""
+Query: "let timeframe = 14d;\r\n  OfficeActivity\r\n  | where TimeGenerated >= ago(timeframe)\r\n  | where (Operation =~ \"Set-Mailbox\" and Parameters contains 'ForwardingSmtpAddress') \r\n  or (Operation =~ 'New-InboxRule' and Parameters contains 'ForwardTo')\r\n  | extend parsed=parse_json(Parameters)\r\n  | extend fwdingDestination_initial = (iif(Operation=~\"Set-Mailbox\", tostring(parsed[1].Value), tostring(parsed[2].Value)))\r\n  | where isnotempty(fwdingDestination_initial)\r\n  | extend fwdingDestination = iff(fwdingDestination_initial has \"smtp\", (split(fwdingDestination_initial,\":\")[1]), fwdingDestination_initial )\r\n  | parse fwdingDestination with * '@' ForwardedtoDomain \r\n  | parse UserId with *'@' UserDomain\r\n  | extend subDomain = ((split(strcat(tostring(split(UserDomain, '.')[-2]),'.',tostring(split(UserDomain, '.')[-1])), '.') [0]))\r\n  | where ForwardedtoDomain !contains subDomain\r\n  | extend Result = iff( ForwardedtoDomain != UserDomain ,\"Mailbox rule created to forward to External Domain\", \"Forward rule for Internal domain\")\r\n  | extend ClientIPAddress = case( ClientIP has \".\", tostring(split(ClientIP,\":\")[0]), ClientIP has \"[\", tostring(trim_start(@'[[]',tostring(split(ClientIP,\"]\")[0]))), ClientIP )\r\n  | extend Port = case(\r\n  ClientIP has \".\", (split(ClientIP,\":\")[1]),\r\n  ClientIP has \"[\", tostring(split(ClientIP,\"]:\")[1]),\r\n  ClientIP\r\n  )\r\n  | project TimeGenerated, UserId, UserDomain, subDomain, Operation, ForwardedtoDomain, ClientIPAddress, Result, Port, OriginatingServer, OfficeObjectId, fwdingDestination\r\n  | extend timestamp = TimeGenerated, AccountCustomEntity = UserId, IPCustomEntity = ClientIPAddress, HostCustomEntity =  OriginatingServer\r\n"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 3
+Tactics:
+- Collection
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: true
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

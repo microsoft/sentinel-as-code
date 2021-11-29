@@ -1,0 +1,8 @@
+[
+    {
+        "Tactic" : "Persistence",
+        "Techniques": [
+            "T1137.005"
+        ]
+    }
+]

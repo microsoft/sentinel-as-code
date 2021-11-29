@@ -1,0 +1,27 @@
+AlertRuleTemplateName: 
+Id: 0e047e8c-0ae3-4687-982a-bb8cedc0f589
+Enabled: true
+DisplayName: RDP Rare Connection
+Description: RDP Rare Connection
+Query: "let starttime = 14d;\n  let endtime = 1d;\n  SecurityEvent\n  | where TimeGenerated >= ago(endtime) \n  | where EventID == 4624 and LogonType == 10\n  | summarize StartTime = min(TimeGenerated), EndTime = max(TimeGenerated), ConnectionCount = count() \n  by Account = tolower(Account), Computer = toupper(Computer), IpAddress, AccountType, Activity, LogonTypeName, ProcessName\n  // use left anti to exclude anything from the previous 14 days that is not rare\n  | join kind=leftanti (\n  SecurityEvent\n  | where TimeGenerated between (ago(starttime) .. ago(endtime))\n  | where EventID == 4624\n  | summarize by Computer = toupper(Computer), IpAddress, Account = tolower(Account)\n  ) on Account, Computer\n  | summarize StartTime = min(StartTime), EndTime = max(EndTime), ConnectionCount = sum(ConnectionCount)  \n  by Account, Computer, IpAddress, AccountType, Activity, LogonTypeName, ProcessName\n  | extend timestamp = StartTime, AccountCustomEntity = Account, HostCustomEntity = Computer, IPCustomEntity = IpAddress"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: 
+- InitialAccess
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

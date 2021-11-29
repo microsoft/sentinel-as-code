@@ -1,0 +1,200 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "SentinelConnectionId": {
+            "type": "string"
+        },
+        "SentinelManagedIdentity": {
+            "type": "string"
+        },
+        "AzureADConnectionId": {
+            "type": "string"
+        },
+        "Microsoft365ConnectionId": {
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('name')]",
+            "location": "[parameters('location')]",
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('SentinelManagedIdentity'))]": {}
+                }
+            },
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_a_response_to_an_Azure_Sentinel_alert_is_triggered": {
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "body": {
+                                    "callback_url": "@{listCallbackUrl()}"
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "path": "/subscribe"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Entities_-_Get_Accounts": {
+                            "runAfter": {},
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": "@triggerBody()?['Entities']",
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "path": "/entities/account"
+                            }
+                        },
+                        "Entities_-_Get_Hosts": {
+                            "runAfter": {
+                                "Entities_-_Get_Accounts": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": "@triggerBody()?['Entities']",
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "path": "/entities/host"
+                            }
+                        },
+                        "For_each": {
+                            "foreach": "@body('Entities_-_Get_Accounts')?['Accounts']",
+                            "actions": {
+                                "For_each_2": {
+                                    "foreach": "@body('Entities_-_Get_Hosts')?['Hosts']",
+                                    "actions": {
+                                        "Send_an_email_(V2)": {
+                                            "runAfter": {},
+                                            "type": "ApiConnection",
+                                            "inputs": {
+                                                "body": {
+                                                    "Body": "<p>Dear @{body('Get_user')?['givenName']}<br>\n<br>\nYou are reciving this emails since on @{triggerBody()?['TimeGenerated']} the account @{body('Get_user')?['userPrincipalName']} tried to login on @{items('For_each_2')?['HostName']}.<br>\n<br>\nAs a result all active sessions has been revoked.<br>\n<br>\nIf this situation persist your account will be prevented from logn in again.<br>\n<br>\nTruly Yours, <br>\nThe IT Guy</p>",
+                                                    "Subject": "@triggerBody()?['AlertDisplayName']",
+                                                    "To": "cesar.maneiro@microsoft.com; @{body('Get_user')?['mail']}"
+                                                },
+                                                "host": {
+                                                    "connection": {
+                                                        "name": "@parameters('$connections')['microsoft365']['connectionId']"
+                                                    }
+                                                },
+                                                "method": "post",
+                                                "path": "/v2/Mail"
+                                            }
+                                        }
+                                    },
+                                    "runAfter": {
+                                        "Get_user": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Foreach"
+                                },
+                                "Get_user": {
+                                    "runAfter": {},
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azuread']['connectionId']"
+                                            }
+                                        },
+                                        "method": "get",
+                                        "path": "/v1.0/users/@{encodeURIComponent(concat(items('For_each')?['Name'], '@', items('for_each')?['UPNSuffix']))}"
+                                    }
+                                },
+                                "Refresh_tokens": {
+                                    "runAfter": {
+                                        "Get_user": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azuread']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "path": "/v1.0/users/@{encodeURIComponent(body('Get_user')?['id'])}/revokeSignInSessions"
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Entities_-_Get_Hosts": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "azuresentinel": {
+                                "connectionId": "[parameters('SentinelConnectionId')]",
+                                "connectionName": "azuresentinel",
+                                "connectionProperties": {
+                                    "authentication": {
+                                        "identity": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('SentinelManagedIdentity'))]",
+                                        "type": "ManagedServiceIdentity"
+                                    }
+                                },
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/azuresentinel')]"
+                            },
+                            "azuread": {
+                                "connectionId": "[parameters('AzureADConnectionId')]",
+                                "connectionName": "azuread",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/azuread')]"
+                            },
+                            "microsoft365": {
+                                "connectionId": "[parameters('Microsoft365ConnectionId')]",
+                                "connectionName": "microsoft365",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/office365')]"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

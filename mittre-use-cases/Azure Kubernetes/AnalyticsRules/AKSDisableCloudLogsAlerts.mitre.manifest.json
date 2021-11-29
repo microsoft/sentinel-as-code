@@ -1,0 +1,8 @@
+[
+    {
+        "Tactic" : "DefenseEvasion",
+        "Techniques": [
+            "T1562.008"
+        ]
+    }
+]

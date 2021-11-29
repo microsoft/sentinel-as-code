@@ -1,0 +1,13 @@
+AlertRuleTemplateName: 327cd4ed-ca42-454b-887c-54e1c91363c6
+Id: fb9d207e-998a-4f59-bccd-d1c27aa31705
+Enabled: true
+DisplayName: Create incidents based on Microsoft Defender Advanced Threat Protection alerts
+Description: Create incidents based on all alerts generated in Microsoft Defender Advanced Threat Protection
+SeveritiesFilter:
+- High
+- Medium
+DisplayNamesExcludeFilter: 
+DisplayNamesFilter: 
+ProductFilter: Microsoft Defender Advanced Threat Protection
+Tactics: 
+Kind: MicrosoftSecurityIncidentCreation

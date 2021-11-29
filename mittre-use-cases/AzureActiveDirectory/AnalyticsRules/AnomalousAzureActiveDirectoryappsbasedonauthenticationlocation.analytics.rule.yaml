@@ -1,0 +1,27 @@
+AlertRuleTemplateName: 
+Id: 46497b01-4c42-454e-9097-948c7d170181
+Enabled: true
+DisplayName: Anomalous Azure Active Directory apps based on authentication location
+Description: Anomalous Azure Active Directory apps based on authentication location
+Query: "let timeRange=ago(14d);\nlet azureSignIns = \nSigninLogs\n| where TimeGenerated >= timeRange\n| where SourceSystem == \"Azure AD\"\n| where OperationName == \"Sign-in activity\"\n| project TimeGenerated, OperationName, AppDisplayName , Identity, UserId, UserPrincipalName, Location, LocationDetails, \nClientAppUsed, DeviceDetail, ConditionalAccessPolicies;\nazureSignIns\n| extend locationString = strcat(tostring(LocationDetails[\"countryOrRegion\"]), \"/\", \ntostring(LocationDetails[\"state\"]), \"/\", tostring(LocationDetails[\"city\"]), \";\" , tostring(LocationDetails[\"geoCoordinates\"]))\n| summarize rawSigninCount = count(), countByAccount = dcount(UserId), locationCount = dcount(locationString) by AppDisplayName\n// tail - pick a threshold to rule out the very-high volume Azure AD apps\n| where rawSigninCount < 1000\n// more locations than accounts\n| where locationCount>countByAccount\n// almost as many / more locations than sign-ins!\n| where 1.0*rawSigninCount / locationCount > 0.8 \n| order by rawSigninCount  desc\n| join kind = leftouter (\n   azureSignIns \n) on AppDisplayName \n| project AppDisplayName, TimeGenerated , Identity, rawSigninCount, countByAccount, locationCount,  \nlocationString = strcat(tostring(LocationDetails[\"countryOrRegion\"]), \"/\", tostring(LocationDetails[\"state\"]), \"/\", \ntostring(LocationDetails[\"city\"]), \";\" , tostring(LocationDetails[\"geoCoordinates\"])), UserPrincipalName\n| extend timestamp = TimeGenerated, AccountCustomEntity = UserPrincipalName \n| order by AppDisplayName, TimeGenerated desc"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- CredentialAccess
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

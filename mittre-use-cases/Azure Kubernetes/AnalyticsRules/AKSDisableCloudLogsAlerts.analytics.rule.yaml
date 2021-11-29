@@ -1,0 +1,40 @@
+AlertRuleTemplateName: 
+Id: 86e02060-da02-4b2f-8272-db948e5adf6c
+Enabled: true
+DisplayName: AKS Disable Cloud Logs Alerts
+Description: ""
+Query: "AzureActivity \r\n|sort by TimeGenerated desc\r\n| where (\r\n          (\r\n            OperationName == \"Create or update resource diagnostic setting\"\r\n            and \r\n            ActivityStatus == \"Started\"\r\n            and (tostring(parse_json(tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).requestbody)).properties)).logs))[0].enabled) == \"false\"\r\n            or \r\n            tostring(parse_json(tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).requestbody)).properties)).logs))[1].enabled) == \"false\"))\r\n          or (OperationName == \"Delete resource diagnostic setting\"\r\n          and ActivityStatus == \"Started\"\r\n          )\r\n          ) \r\n\r\n"
+SeveritiesFilter: 
+Severity: High
+QueryFrequency: PT2H
+QueryPeriod: PT2H
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- DefenseEvasion
+EventGroupSettings:
+  aggregationKind: AlertPerResult
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: CallerIpAddress
+- entityType: Account
+  fieldMappings:
+  - identifier: Name
+    columnName: Caller
+- entityType: AzureResource
+  fieldMappings:
+  - identifier: ResourceId
+    columnName: ResourceId
+Kind: Scheduled

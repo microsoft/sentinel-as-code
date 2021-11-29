@@ -1,0 +1,35 @@
+AlertRuleTemplateName: 
+Id: 4ff141aa-ffae-4d58-a554-539b1ac386a7
+Enabled: true
+DisplayName: Network Service Scanning
+Description: Possible outgoing port scanning activity detected
+Query: |-
+  SecurityAlert
+  | where ProductName == "Azure Security Center"
+  | where AlertName == "Possible outgoing port scanning activity detected"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT6M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- Discovery
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings:
+- entityType: AzureResource
+  fieldMappings:
+  - identifier: ResourceId
+    columnName: ResourceId
+Kind: Scheduled

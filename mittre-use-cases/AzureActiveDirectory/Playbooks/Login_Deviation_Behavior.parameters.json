@@ -1,0 +1,30 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "value": "socdap-[settings('location').Id]logindeviationbehavior-playbook"
+        },
+        "sentinelConnectionId": {
+            "value": "[settings('azuresentinel').Id]"
+        },
+        "emailNotification": {
+            "value": "contoso@Contoso.com"
+        },
+        "sentinelManagedIdentity": {
+            "value": "[settings('managedidentity').Name]"
+        },
+        "azureADConnectionId": {
+            "value": "[settings('azuread').Id]"
+        },
+        "microsoft365ConnectionId": {
+            "value": "[settings('office365').Id]"
+        },
+        "keyVaultConnectionId": {
+            "value": "[settings('keyvault').Id]"
+        },
+        "location": {
+            "value": "[settings('location').Name]"
+        }
+    }
+}

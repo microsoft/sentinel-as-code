@@ -1,0 +1,36 @@
+AlertRuleTemplateName: 
+Id: 7272d050-fba2-4622-b397-4cc565845c78
+Enabled: true
+DisplayName: AKS Execution detection
+Description: ""
+Query: |-
+  SecurityAlert
+  | where ProductName == "Azure Security Center"
+  | where Tactics == "Execution"
+  | where CompromisedEntity has "KubernetesService"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT56M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- Execution
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings:
+- entityType: AzureResource
+  fieldMappings:
+  - identifier: ResourceId
+    columnName: ResourceId
+Kind: Scheduled

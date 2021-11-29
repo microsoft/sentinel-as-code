@@ -1,0 +1,28 @@
+AlertRuleTemplateName: 
+Id: a1d4fd58-3c38-448a-856c-1494fa438c04
+Enabled: true
+DisplayName: Ability to monitor AKS / Container on Azure (Pods and Clusters)
+Description: IMP_ Ability to monitor AKS / Container on Azure (Pods and Clusters)
+Query: |-
+  AzureDiagnostics
+  | where ResourceType == "MICROSOFT.CONTAINERSERVICE"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: 
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

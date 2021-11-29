@@ -1,0 +1,8 @@
+[
+    {
+        "Tactic" : "Lateral Movement",
+        "Techniques": [
+            "T1550.001"
+        ]
+    }
+]

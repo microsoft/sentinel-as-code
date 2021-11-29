@@ -1,0 +1,9 @@
+[
+    {
+        "Tactic" : "CredentialAccess",
+        "Techniques": [
+            "T1110",
+            "T1110.003"
+        ]
+    }
+]
