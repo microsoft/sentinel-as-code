@@ -1,14 +1,8 @@
 # Project
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
-
-As the maintainer of this project, please make a few updates:
-
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+This repo contains a subset of samples over **Azure Sentinel** for covering the following topics:
+- DevOps use cases like Artifacts Deployment or Connector enablement
+- MITRE use cases as technical reference for different Azure Services
 
 ## Contributing
 
@@ -24,10 +18,37 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-## Trademarks
+# Sentinel Landscape Framework
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+A collection of samples to cover different aspecto on the lifecycle for a Sentinel deployment is available on this repository, including:
+
+### **Connector Mananagement Framework**
+
+Using this sample you can enable, disable and check status of the Sentinel Connectors based on REST API
+- Connectors, which allows to enable, disable and check status for the following datasources:
+- Azure Active Directory
+- Azure Active Directory Identity Protection
+- Azure Defender for Cloud
+- Azure Activity
+- Office 365 Logs
+- Microsoft 365 Defender
+- MCAS
+- TAXII Server
+- Threat Intelligence Platform (Graph API)
+
+### **Sentinel Artifacts**
+
+Using these samples you can add, update and remove different artifacts on Azure Sentinel like:
+
+- **Analytic Rules Framework**, which allows to export and import Analytic Rules over a specific Sentinel instance
+- **Hunting Rules Framework**, which allows to export and import Hunting Rules over a specific Sentinel instance
+- **Live Stream Rules Framework**, which allows to export and import Live Stream Rules over a specific Sentinel instance
+- **Automation Rules Framework**, which allows to export and import Automation Rules over a specific Sentinel instance
+- **Workbooks Framework**, which allows to export and import Workbooks over a specific Sentinel instance
+- **Watchlists Framework**, which allows to export and import Watchlists over a specific Sentinel instance
+- **Playbooks Framework**, which allows to deploy and export Playbooks for being used in a specific Sentinel instance
+- **Runbooks Framework**, which allows to deploy and export Runbooks on an Automation Account
+
+### **MITRE Use Cases**
+
+Using these samples, you can see a code organization considering different Azure Sentinel artifacts classified by different Azure Services as target. 
