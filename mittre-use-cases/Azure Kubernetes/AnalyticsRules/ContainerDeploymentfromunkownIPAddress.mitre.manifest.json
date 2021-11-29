@@ -1,0 +1,8 @@
+[
+    {
+        "Tactic" : "Execution",
+        "Techniques": [
+            "T1036.005"
+        ]
+    }
+]

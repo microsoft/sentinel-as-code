@@ -1,0 +1,218 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "type": "string"
+        },
+        "azureSentinelConnectionId": {
+            "type": "string"
+        },
+        "keyVaultConnectionId": {
+            "type": "string"
+        },
+        "SentinelManagedIdentity": {
+            "type": "string"
+        },
+        "office365ConnectionId": {
+            "type": "string"
+        },
+        "AutomationAccount": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "automationAccount": "[parameters('AutomationAccount')]",
+        "path" : "[concat('/subscriptions/@{encodeURIComponent(''', subscription().subscriptionId, ''')}/resourceGroups/@{encodeURIComponent(''', resourceGroup().name, ''')}/providers/Microsoft.Automation/automationAccounts/@{encodeURIComponent(''', variables('automationAccount'),''')}/jobs')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2019-05-01",
+            "name": "[parameters('name')]",
+            "location": "[parameters('location')]",
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('SentinelManagedIdentity'))]": {}
+                }
+            },
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_a_response_to_an_Azure_Sentinel_alert_is_triggered": {
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "body": {
+                                    "callback_url": "@{listCallbackUrl()}"
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "path": "/subscribe"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Alert_-_Get_incident": {
+                            "runAfter": {},
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/Incidents/subscriptions/@{encodeURIComponent(triggerBody()?['WorkspaceSubscriptionId'])}/resourceGroups/@{encodeURIComponent(triggerBody()?['WorkspaceResourceGroup'])}/workspaces/@{encodeURIComponent(triggerBody()?['WorkspaceId'])}/alerts/@{encodeURIComponent(triggerBody()?['SystemAlertId'])}"
+                            }
+                        },
+                        "Entities_-_Get_Hosts": {
+                            "runAfter": {
+                                "Alert_-_Get_incident": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": "@triggerBody()?['Entities']",
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "path": "/entities/host"
+                            }
+                        },
+                        "For_each": {
+                            "foreach": "@body('Entities_-_Get_Hosts')?['Hosts']",
+                            "actions": {
+                                "Create_job": {
+                                    "runAfter": {
+                                        "Send_approval_email": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "body": {
+                                            "properties": {
+                                                "parameters": {
+                                                    "ResourceGroupName": "@{substring(substring(items('For_each')?['Hostname'],67),0,indexOf(substring(items('For_each')?['Hostname'],67),'/'))}",
+                                                    "VirtualMachineName": "@{substring(items('For_each')?['DnsDomain'],24)}",
+                                                    "subscriptionid": "@triggerBody()?['WorkspaceSubscriptionId']"
+                                                }
+                                            }
+                                        },
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azureautomation']['connectionId']"
+                                            }
+                                        },
+                                        "method": "put",
+                                        "path": "[variables('path')]",
+                                        "queries": {
+                                            "runbookName": "Copy-DigitalEvidenceVmWindows",
+                                            "wait": true,
+                                            "x-ms-api-version": "2015-10-31"
+                                        }
+                                    }
+                                },
+                                "Send_approval_email": {
+                                    "runAfter": {},
+                                    "type": "ApiConnectionWebhook",
+                                    "inputs": {
+                                        "body": {
+                                            "Message": {
+                                                "Body": "Dear SOC,\n\nThe Windows virtual machine (@{substring(items('For_each')?['DnsDomain'],24)}) trigger an alert (@{triggerBody()?['AlertDisplayName']}).\nResource Group : @{substring(substring(items('For_each')?['Hostname'],67),0,indexOf(substring(items('For_each')?['Hostname'],67),'/'))}\nWe have strong evidence to belive that this system might be compromised. For that reason we ask for your confirmation to begin the hard drives Chain of Custody Process.\n\nPlease Approve or Reject the process.\n\nRegards\nFor more details on the alert triggered go to: @{body('Alert_-_Get_incident')?['properties']?['incidentUrl']}\n",
+                                                "HideHTMLMessage": false,
+                                                "Importance": "High",
+                                                "Options": "Approve, Reject",
+                                                "ShowHTMLConfirmationDialog": false,
+                                                "Subject": "Forensics Chain of Custody Windows VM disks",
+                                                "To": "cesar.maneiro@microsoft.com"
+                                            },
+                                            "NotificationUrl": "@{listCallbackUrl()}"
+                                        },
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['office365']['connectionId']"
+                                            }
+                                        },
+                                        "path": "/approvalmail/$subscriptions"
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Entities_-_Get_Hosts": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "azureautomation": {
+                                "connectionId": "[parameters('AutomationAccount')]",
+                                "connectionName": "azureautomation",
+                                "connectionProperties": {
+                                    "authentication": {
+                                        "identity": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('SentinelManagedIdentity'))]",
+                                        "type": "ManagedServiceIdentity"
+                                    }
+                                },
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/azureautomation')]"
+                            },
+                            "keyvault": {
+                                "connectionId": "[parameters('keyVaultConnectionId')]",
+                                "connectionName": "keyvault",
+                                "connectionProperties": {
+                                    "authentication": {
+                                        "identity": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('SentinelManagedIdentity'))]",
+                                        "type": "ManagedServiceIdentity"
+                                    }
+                                },
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/keyvault')]"
+                            },
+                            "azuresentinel": {
+                                "connectionId": "[parameters('azureSentinelConnectionId')]",
+                                "connectionName": "azuresentinel",
+                                "connectionProperties": {
+                                    "authentication": {
+                                        "identity": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('SentinelManagedIdentity'))]",
+                                        "type": "ManagedServiceIdentity"
+                                    }
+                                },
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/azuresentinel')]"
+                            },
+                            "office365": {
+                                "connectionId": "[parameters('office365ConnectionId')]",
+                                "connectionName": "office365",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/microsoft365')]"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

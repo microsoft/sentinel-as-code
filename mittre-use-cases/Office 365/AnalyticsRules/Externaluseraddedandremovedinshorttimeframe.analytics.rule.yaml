@@ -1,0 +1,51 @@
+AlertRuleTemplateName: 
+Id: 90d06c44-e575-4fc1-a258-9890b27c2073
+Enabled: true
+DisplayName: External user added and removed in short timeframe
+Description: |-
+  This detection flags the occurances of external user accounts that are added to a Team and then removed within
+    one hour.
+Query: |-
+  OfficeActivity
+    | where OfficeWorkload =~ "MicrosoftTeams"
+    | where Operation =~ "MemberAdded"
+    | extend UPN = tostring(parse_json(Members)[0].UPN)
+    | where UPN contains ("#EXT#")
+    | project TimeAdded=TimeGenerated, Operation, UPN, UserWhoAdded = UserId, TeamName
+    | join (
+     OfficeActivity
+    | where OfficeWorkload =~ "MicrosoftTeams"
+    | where Operation =~ "MemberRemoved"
+    | extend UPN = tostring(parse_json(Members)[0].UPN)
+    | where UPN contains ("#EXT#")
+    | project TimeDeleted=TimeGenerated, Operation, UPN, UserWhoDeleted = UserId, TeamName
+    ) on UPN
+    | where TimeDeleted > TimeAdded
+    | project TimeAdded, TimeDeleted, UPN, UserWhoAdded, UserWhoDeleted, TeamName
+    | extend timestamp = TimeAdded, AccountCustomEntity = UPN
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT1H
+QueryPeriod: PT1H
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- Persistence
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings:
+- entityType: Account
+  fieldMappings:
+  - identifier: FullName
+    columnName: AccountCustomEntity
+Kind: Scheduled

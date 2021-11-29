@@ -1,0 +1,13 @@
+AlertRuleTemplateName: 90586451-7ba8-4c1e-9904-7d1b7c3cc4d6
+Id: b48f6c23-9474-485f-9c60-5c428d6f7355
+Enabled: true
+DisplayName: Azure Security Center - MFA must be enable
+Description: Create incidents based on all alerts generated in Azure Security Center
+SeveritiesFilter: 
+DisplayNamesExcludeFilter: 
+DisplayNamesFilter:
+- MFA should be enabled on accounts
+ProductFilter: Azure Security Center
+Tactics: 
+- InitialAccess
+Kind: MicrosoftSecurityIncidentCreation

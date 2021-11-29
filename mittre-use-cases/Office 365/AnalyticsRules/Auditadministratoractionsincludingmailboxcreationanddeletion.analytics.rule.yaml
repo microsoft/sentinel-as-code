@@ -1,0 +1,28 @@
+AlertRuleTemplateName: 
+Id: c899fef1-e6ca-4b26-805b-ab6684118f07
+Enabled: true
+DisplayName: Audit administrator actions, including mailbox creation and deletion.
+Description: ""
+Query: "let starttime = 14d;\r\n  let endtime = 1d;\r\n  let historicalActivity=\r\n  OfficeActivity\r\n  | where TimeGenerated between(ago(starttime)..ago(endtime))\r\n  | where RecordType==\"ExchangeAdmin\" and UserType in (\"Admin\",\"DcAdmin\")\r\n  | summarize historicalCount=count() by UserId;\r\n  let recentActivity = OfficeActivity\r\n  | where TimeGenerated > ago(endtime)\r\n  | where UserType in (\"Admin\",\"DcAdmin\")\r\n  | summarize recentCount=count() by UserId;\r\n  recentActivity | join kind = leftanti (\r\n     historicalActivity\r\n  ) on UserId\r\n  | project UserId,recentCount\r\n  | order by recentCount asc, UserId\r\n  | join kind = rightsemi \r\n  (OfficeActivity \r\n  | where TimeGenerated >= ago(endtime) \r\n  | where RecordType == \"ExchangeAdmin\" | where UserType in (\"Admin\",\"DcAdmin\")) \r\n  on UserId\r\n  | summarize count(), min(TimeGenerated), max(TimeGenerated) by RecordType, Operation, UserType, UserId, OriginatingServer, ResultStatus\r\n  | extend timestamp = min_TimeGenerated, AccountCustomEntity = UserId\r\n"
+SeveritiesFilter: 
+Severity: High
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 5
+Tactics:
+- Persistence
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

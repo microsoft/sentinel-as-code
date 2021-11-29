@@ -1,0 +1,27 @@
+AlertRuleTemplateName: 
+Id: 6a3e9f5c-348a-4c2e-a8ef-ffab8653b24f
+Enabled: true
+DisplayName: Hosts With New Logons
+Description: Hosts With New Logons
+Query: "let starttime = 7d;\n  let endtime = 1d;\n  let LogonEvents=() { \n  let logonSuccess=SecurityEvent \n  | where EventID==4624 \n  | project TimeGenerated, ComputerName=Computer, AccountName=TargetUserName, AccountDomain=TargetDomainName, IpAddress, ActionType='Logon';\n  let logonFail=SecurityEvent \n  | where EventID==4625 \n  | project TimeGenerated, ComputerName=Computer, AccountName=TargetUserName, AccountDomain=TargetDomainName, IpAddress, ActionType='LogonFailure';\n  logonFail \n  | union logonSuccess\n  };\n  LogonEvents \n  | where TimeGenerated > ago(endtime) \n  | where ActionType == 'Logon' \n  | summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), count() by ComputerName, AccountName \n  | join kind=leftanti ( \n  LogonEvents \n  | where TimeGenerated between(ago(starttime)..ago(endtime)) \n  | where ActionType == 'Logon' \n  | summarize count() by ComputerName, AccountName \n  ) on ComputerName, AccountName \n  | summarize StartTimeUtc = min(StartTimeUtc), EndTimeUtc = max(EndTimeUtc), HostCount=dcount(ComputerName), HostSet=makeset(ComputerName, 10)  by AccountName, ComputerName\n  | extend timestamp = StartTimeUtc, AccountCustomEntity = AccountName"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: 
+- CredentialAccess
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

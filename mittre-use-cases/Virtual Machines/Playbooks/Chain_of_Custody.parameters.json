@@ -1,0 +1,27 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "value": "socdap-[settings('location').Id]chainofcustody-playbook"
+        },
+        "AutomationAccount" : {
+            "value": "[settings('azureautomation').Name]"
+        },
+        "sentinelConnectionId": {
+            "value": "[settings('azuresentinel').Id]"
+        },
+        "sentinelManagedIdentity": {
+            "value": "[settings('managedidentity').Name]"
+        },
+        "office365ConnectionId": {
+            "value": "[settings('office365').Id]"
+        },
+        "location": {
+            "value": "[settings('location').Name]"
+        },
+        "keyVaultConnectionId": {
+            "value": "[settings('keyvault').Id]"
+        }
+    }
+}

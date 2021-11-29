@@ -1,0 +1,9 @@
+[
+    {
+        "Tactic" : "Initial Access",
+        "Techniques": [
+            "T1078.003",
+            "T1078.002"
+        ]
+    }
+]

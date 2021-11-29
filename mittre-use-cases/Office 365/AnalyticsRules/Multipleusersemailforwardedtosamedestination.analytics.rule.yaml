@@ -1,0 +1,28 @@
+AlertRuleTemplateName: 
+Id: 3df1088c-6668-448d-a786-1ca899246593
+Enabled: true
+DisplayName: Multiple users email forwarded to same destination
+Description: "Identifies when multiple (more than one) users mailboxes are configured to forward to the same destination. \n  This could be an attacker-controlled destination mailbox configured to collect mail from multiple compromised user accounts."
+Query: "OfficeActivity\r\n  | where Operation =~ \"Set-Mailbox\"\r\n  | where Parameters has \"ForwardingSmtpAddress\"\r\n  | extend parsed = parse_json(Parameters)\r\n  | mv-expand parsed\r\n  | where parsed.Name == \"ForwardingSmtpAddress\"\r\n  | extend parameterName = tostring(parsed.Name), fwdingDestination = tostring(parsed.Value)\r\n  | where isnotempty(fwdingDestination)\r\n  | extend ClientIPOnly = case( \r\n  ClientIP has \".\" and ClientIP has ':', tostring(split(ClientIP,\":\")[0]), \r\n  ClientIP has \".\" and ClientIP has '-', tostring(split(ClientIP,\"-\")[0]), \r\n  ClientIP has ']-', tostring(trim_start(@'[[]',tostring(split(ClientIP,\"]\")[0]))),\r\n  ClientIP has ']:', tostring(trim_start(@'[[]',tostring(split(ClientIP,\"]\")[0]))),\r\n  isempty(ClientIP) and ClientIP_ has \".\" and ClientIP_ has ':', tostring(split(ClientIP_,\":\")[0]), \r\n  isempty(ClientIP) and ClientIP_ has \".\" and ClientIP_ has '-', tostring(split(ClientIP_,\"-\")[0]), \r\n  isempty(ClientIP) and ClientIP_ has ']-', tostring(trim_start(@'[[]',tostring(split(ClientIP_,\"]\")[0]))),\r\n  isempty(ClientIP) and ClientIP_ has ']:', tostring(trim_start(@'[[]',tostring(split(ClientIP_,\"]\")[0]))),\r\n  isnotempty(ClientIP), ClientIP,\r\n  isnotempty(ClientIP_), ClientIP_,\r\n  \"IP Not Available\"\r\n  )  \r\n  | extend Port = case(\r\n  ClientIP has \".\" and ClientIP has ':', tostring(split(ClientIP,\":\")[1]), \r\n  ClientIP has \".\" and ClientIP has '-', tostring(split(ClientIP,\"-\")[1]), \r\n  ClientIP has ']-', tostring(split(ClientIP,\"]-\")[1]), \r\n  ClientIP has ']:', tostring(split(ClientIP,\"]:\")[1]), \r\n  isempty(ClientIP) and ClientIP_ has \".\" and ClientIP_ has ':', tostring(split(ClientIP_,\":\")[1]), \r\n  isempty(ClientIP) and ClientIP_ has \".\" and ClientIP_ has '-', tostring(split(ClientIP_,\"-\")[1]), \r\n  isempty(ClientIP) and ClientIP_ has ']-', tostring(split(ClientIP_,\"]-\")[1]),\r\n  isempty(ClientIP) and ClientIP_ has ']:', tostring(split(ClientIP_,\"]:\")[1]),\r\n  isnotempty(ClientIP), ClientIP,\r\n  isnotempty(ClientIP_), ClientIP_,\r\n  \"IP Not Available\"\r\n  )\r\n  | extend UserId = iff(isempty(UserId), UserId_, UserId)\r\n  | summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), DistinctUserCount = dcount(UserId), UserId = make_set(UserId), \r\n  Ports = make_set(Port), EventCount = count() by fwdingDestination, ClientIP = ClientIPOnly \r\n  | where DistinctUserCount > 1\r\n  | mv-expand UserId\r\n  | extend UserId = tostring(UserId), Ports = tostring(Ports)\r\n  | distinct StartTimeUtc, EndTimeUtc, UserId, DistinctUserCount, ClientIP, Ports, fwdingDestination, EventCount\r\n  | extend timestamp = StartTimeUtc, AccountCustomEntity = UserId, IPCustomEntity = ClientIP"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: P1D
+QueryPeriod: P7D
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- Collection
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

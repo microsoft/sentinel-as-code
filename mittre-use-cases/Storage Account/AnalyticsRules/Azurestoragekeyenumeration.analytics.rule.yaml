@@ -1,0 +1,27 @@
+AlertRuleTemplateName: 
+Id: 61589c93-1f81-45e1-b83f-fb2fbc5d3036
+Enabled: true
+DisplayName: Azure storage key enumeration
+Description: Azure storage key enumeration
+Query: "let timeframe = 5m;\nAzureActivity\n| where TimeGenerated >= ago(timeframe)\n| where OperationName == \"List Storage Account Keys\"\n| where ActivityStatus == \"Succeeded\" \n| join kind= inner (\n    AzureActivity\n    | where TimeGenerated >= ago(timeframe)\n    | where OperationName == \"List Storage Account Keys\"\n    | where ActivityStatus == \"Succeeded\" \n    | project ExpectedIpAddress=CallerIpAddress, Caller \n    | evaluate autocluster()\n) on Caller \n| where CallerIpAddress != ExpectedIpAddress\n| summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), ResourceIds = makeset(ResourceId), ResourceIdCount = dcount(ResourceId) by OperationName, Caller, CallerIpAddress\n| extend timestamp = StartTimeUtc, AccountCustomEntity = Caller, IPCustomEntity = CallerIpAddress"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: 
+- Discovery
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

@@ -1,0 +1,27 @@
+AlertRuleTemplateName: 
+Id: f4557840-fba6-4f0e-80d2-f121e97314a4
+Enabled: true
+DisplayName: Failed attempt to access Azure Portal
+Description: Failed attempt to access Azure Portal
+Query: "let timeRange=ago(7d);\nSigninLogs\n| where TimeGenerated >= timeRange\n| where AppDisplayName contains \"Azure Portal\"\n// 50126 - Invalid username or password, or invalid on-premises username or password.\n// 50020? - The user doesn't exist in the tenant.\n| where ResultType in ( \"50126\" , \"50020\")\n| extend OS = DeviceDetail.operatingSystem, Browser = DeviceDetail.browser\n| extend StatusCode = tostring(Status.errorCode), StatusDetails = tostring(Status.additionalDetails)\n| extend State = tostring(LocationDetails.state), City = tostring(LocationDetails.city)\n| summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), IPAddresses = makeset(IPAddress), DistinctIPCount = dcount(IPAddress), \nmakeset(OS), makeset(Browser), makeset(City), AttemptCount = count() \nby UserDisplayName, UserPrincipalName, AppDisplayName, ResultType, ResultDescription, StatusCode, StatusDetails, Location, State\n| extend timestamp = StartTimeUtc, AccountCustomEntity = UserPrincipalName\n| sort by AttemptCount"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: 
+- CredentialAccess
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

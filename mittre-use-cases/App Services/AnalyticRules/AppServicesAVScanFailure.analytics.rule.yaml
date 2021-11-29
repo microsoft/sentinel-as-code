@@ -1,0 +1,31 @@
+AlertRuleTemplateName: 
+Id: 89baa1a3-ba39-4471-8b83-0e311116ba10
+Enabled: true
+DisplayName: AppServices AV Scan Failure
+Description: Identifies if an AV scan fails in Azure App Services.
+Query: |2-
+   let timeframe = ago(1d);
+    AppServiceAntivirusScanAuditLogs
+    | where ScanStatus == "Failed"
+    | extend HostCustomEntity = _ResourceId, timestamp = TimeGenerated
+SeveritiesFilter: 
+Severity: Informational
+QueryFrequency: PT5H
+QueryPeriod: PT5H
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: []
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

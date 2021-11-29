@@ -1,0 +1,35 @@
+AlertRuleTemplateName: 
+Id: 55730c81-1710-4659-b365-31021e50e05b
+Enabled: true
+DisplayName: Azure Resource Management from Non Approved IP
+Description: ""
+Query: |-
+  let iplist =_GetWatchlist('IP_Whitelist');
+  AzureActivity
+  |where ActivitySubstatus <> ""
+  | join kind=leftantisemi   iplist on ($left.CallerIpAddress == $right.IP_Address)
+  | extend AccountCustomEntity = Caller
+  | extend IPCustomEntity = CallerIpAddress
+  | extend HostCustomEntity = SourceSystem
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- Impact
+EventGroupSettings:
+  aggregationKind: AlertPerResult
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: true
+    reopenClosedIncident: false
+    lookbackDuration: PT1H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

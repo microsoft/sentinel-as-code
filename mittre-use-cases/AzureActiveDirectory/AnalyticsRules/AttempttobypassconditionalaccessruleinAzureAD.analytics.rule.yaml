@@ -1,0 +1,27 @@
+AlertRuleTemplateName: 
+Id: d43c1718-1df1-45d4-bd19-2052bbece412
+Enabled: true
+DisplayName: Attempt to bypass conditional access rule in Azure AD
+Description: Attempt to bypass conditional access rule in Azure AD
+Query: "let timeRange = ago(1d);\nlet threshold = 1;\nSigninLogs\n| where TimeGenerated >= timeRange\n| where ConditionalAccessStatus == 1 or ConditionalAccessStatus =~ \"failure\"\n| extend OS = DeviceDetail.operatingSystem, Browser = DeviceDetail.browser \n| extend StatusCode = tostring(Status.errorCode), StatusDetails = tostring(Status.additionalDetails)\n| extend ConditionalAccessPol0Name = tostring(ConditionalAccessPolicies[0].displayName)\n| extend ConditionalAccessPol1Name = tostring(ConditionalAccessPolicies[1].displayName)\n| extend ConditionalAccessPol2Name = tostring(ConditionalAccessPolicies[2].displayName)\n| extend Status = strcat(StatusCode, \": \", ResultDescription) \n| summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), Status = makelist(Status), StatusDetails = makelist(StatusDetails), IPAddresses = makelist(IPAddress), IPAddressCount = dcount(IPAddress) , CorrelationIds = makelist(CorrelationId) by UserPrincipalName, AppDisplayName, tostring(Browser), tostring(OS), Location, ConditionalAccessPol0Name, ConditionalAccessPol1Name, ConditionalAccessPol2Name\n| where IPAddressCount > threshold and StatusDetails !has \"MFA successfully completed\"\n| mvexpand IPAddresses, Status, StatusDetails, CorrelationIds\n| extend Status = strcat(Status, \" \", StatusDetails)\n| summarize IPAddresses = makeset(IPAddresses), Status = makeset(Status), CorrelationIds = makeset(CorrelationIds) by StartTimeUtc, EndTimeUtc, UserPrincipalName, AppDisplayName, tostring(Browser), tostring(OS), Location, ConditionalAccessPol0Name, ConditionalAccessPol1Name, ConditionalAccessPol2Name, IPAddressCount\n| extend timestamp = StartTimeUtc, AccountCustomEntity = UserPrincipalName, IPCustomEntity = tostring(IPAddresses)"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: 
+- InitialAccess
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

@@ -1,0 +1,31 @@
+AlertRuleTemplateName: 
+Id: 04f1c8cd-c62d-456b-9f92-5a172a35ff79
+Enabled: true
+DisplayName: Mail redirect via ExO transport rule
+Description: |-
+  Identifies when Exchange Online transport rule configured to forward emails.
+    This could be an adversary mailbox configured to collect mail from multiple user accounts.
+Query: " OfficeActivity\r\n  | where OfficeWorkload == \"Exchange\"\r\n  | where Operation in~ (\"New-TransportRule\", \"Set-TransportRule\")\r\n  | extend p = parse_json(Parameters)\r\n  | extend RuleName = case(\r\n    Operation =~ \"Set-TransportRule\", tostring(OfficeObjectId),\r\n    Operation =~ \"New-TransportRule\", tostring(p[1].Value),\r\n    \"Unknown\"\r\n    ) \r\n  | mvexpand p\r\n  | where (p.Name =~ \"BlindCopyTo\" or p.Name =~ \"RedirectMessageTo\") and isnotempty(p.Value)\r\n  | extend RedirectTo = p.Value\r\n  | extend ClientIPOnly = case( \r\n    ClientIP has \".\" and ClientIP has \":\", tostring(split(ClientIP,\":\")[0]), \r\n    ClientIP has \".\" and ClientIP has \"-\", tostring(split(ClientIP,\"-\")[0]), \r\n    ClientIP has \"[\", tostring(trim_start(@'[[]',tostring(split(ClientIP,\"]\")[0]))),\r\n    ClientIP\r\n    )  \r\n  | extend Port = case(\r\n    ClientIP has \".\" and ClientIP has \":\", (split(ClientIP,\":\")[1]),\r\n    ClientIP has \".\" and ClientIP has \"-\", (split(ClientIP,\"-\")[1]),\r\n    ClientIP has \"[\" and ClientIP has \":\", tostring(split(ClientIP,\"]:\")[1]),\r\n    ClientIP has \"[\" and ClientIP has \"-\", tostring(split(ClientIP,\"]-\")[1]),\r\n    ClientIP\r\n    )\r\n  | extend ClientIP = ClientIPOnly\r\n  | project TimeGenerated, RedirectTo, ClientIP, Port, UserId, Operation, RuleName\r\n  | extend timestamp = TimeGenerated, AccountCustomEntity = UserId, IPCustomEntity = ClientIP "
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: P1D
+QueryPeriod: P1D
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- Collection
+- Exfiltration
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

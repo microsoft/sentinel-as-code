@@ -1,0 +1,28 @@
+AlertRuleTemplateName: 0777f138-e5d8-4eab-bec1-e11ddfbc2be2
+Id: f7129897-21a5-4807-ab8c-87c5f47143bb
+Enabled: true
+DisplayName: Failed logon attempts by valid accounts within 10 mins
+Description: Identifies when failed logon attempts are 20 or higher during a 10 minute period (2 failed logons per minute minimum) from valid account.
+Query: "let timeframe = 10m;\nlet threshold = 10;\nSecurityEvent \n| where TimeGenerated >= ago(timeframe)\n| where EventID == 4625\n| where AccountType =~ \"User\"\n| where SubStatus !='0xc0000064' and Account !in ('\\\\', '-\\\\-')\n// SubStatus '0xc0000064' signifies 'Account name does not exist'\n| extend ResourceId = column_ifexists(\"_ResourceId\", _ResourceId), SourceComputerId = column_ifexists(\"SourceComputerId\", SourceComputerId)\n| extend Reason = case(\nSubStatus =~ '0xC000005E', 'There are currently no logon servers available to service the logon request.',\nSubStatus =~ '0xC0000064', 'User logon with misspelled or bad user account',\nSubStatus =~ '0xC000006A', 'User logon with misspelled or bad password', \nSubStatus =~ '0xC000006D', 'Bad user name or password',\nSubStatus =~ '0xC000006E', 'Unknown user name or bad password',\nSubStatus =~ '0xC000006F', 'User logon outside authorized hours',\nSubStatus =~ '0xC0000070', 'User logon from unauthorized workstation',\nSubStatus =~ '0xC0000071', 'User logon with expired password',\nSubStatus =~ '0xC0000072', 'User logon to account disabled by administrator',\nSubStatus =~ '0xC00000DC', 'Indicates the Sam Server was in the wrong state to perform the desired operation', \nSubStatus =~ '0xC0000133', 'Clocks between DC and other computer too far out of sync',\nSubStatus =~ '0xC000015B', 'The user has not been granted the requested logon type (aka logon right) at this machine',\nSubStatus =~ '0xC000018C', 'The logon request failed because the trust relationship between the primary domain and the trusted domain failed',\nSubStatus =~ '0xC0000192', 'An attempt was made to logon, but the Netlogon service was not started',\nSubStatus =~ '0xC0000193', 'User logon with expired account',\nSubStatus =~ '0xC0000224', 'User is required to change password at next logon',\nSubStatus =~ '0xC0000225', 'Evidently a bug in Windows and not a risk',\nSubStatus =~ '0xC0000234', 'User logon with account locked',\nSubStatus =~ '0xC00002EE', 'Failure Reason: An Error occurred during Logon',\nSubStatus =~ '0xC0000413', 'Logon Failure: The machine you are logging onto is protected by an authentication firewall. The specified account is not allowed to authenticate to the machine',\nstrcat('Unknown reason substatus: ', SubStatus))\n| summarize StartTime = min(TimeGenerated), EndTime = max(TimeGenerated), FailedLogonCount = count() by EventID, \nActivity, Computer, Account, TargetAccount, TargetUserName, TargetDomainName, \nLogonType, LogonTypeName, LogonProcessName, Status, SubStatus, Reason, ResourceId, SourceComputerId, WorkstationName, IpAddress\n| where FailedLogonCount >= threshold\n| extend timestamp = StartTime, AccountCustomEntity = Account, HostCustomEntity = ResourceId, IPCustomEntity = IpAddress"
+SeveritiesFilter: 
+Severity: Low
+QueryFrequency: PT10M
+QueryPeriod: PT10M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- CredentialAccess
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

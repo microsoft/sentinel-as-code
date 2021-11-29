@@ -1,0 +1,27 @@
+AlertRuleTemplateName: 
+Id: 73e5ebb3-8b1e-4bf1-97bf-167935601a0b
+Enabled: true
+DisplayName: New Admin account activity seen which was not seen historically
+Description: New Admin account activity seen which was not seen historically
+Query: "let starttime = 14d;\nlet endtime = 1d;\nlet historicalActivity=\nOfficeActivity\n| where TimeGenerated between(ago(starttime)..ago(endtime))\n| where RecordType==\"ExchangeAdmin\" and UserType in (\"Admin\",\"DcAdmin\")\n| summarize historicalCount=count() by UserId;\nlet recentActivity = OfficeActivity\n| where TimeGenerated > ago(endtime)\n| where UserType in (\"Admin\",\"DcAdmin\")\n| summarize recentCount=count() by UserId;\nrecentActivity | join kind = leftanti (\n   historicalActivity\n) on UserId\n| project UserId,recentCount\n| order by recentCount asc, UserId\n| join kind = rightsemi \n(OfficeActivity \n| where TimeGenerated >= ago(endtime) \n| where RecordType == \"ExchangeAdmin\" | where UserType in (\"Admin\",\"DcAdmin\")) \non UserId\n| summarize count(), min(TimeGenerated), max(TimeGenerated) by RecordType, Operation, UserType, UserId, OriginatingServer, ResultStatus\n| extend timestamp = min_TimeGenerated, AccountCustomEntity = UserId"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: 
+- Persistence
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

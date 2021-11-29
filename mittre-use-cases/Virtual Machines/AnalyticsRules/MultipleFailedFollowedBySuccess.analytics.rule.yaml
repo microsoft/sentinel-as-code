@@ -1,0 +1,27 @@
+AlertRuleTemplateName: 
+Id: 072e9bab-0252-486d-8392-6ab31aa2875f
+Enabled: true
+DisplayName: Multiple Failed Followed By Success
+Description: Multiple Failed Followed By Success
+Query: "let timeRange = 6h;\n    let authenticationWindow = 1h;\n    let authenticationThreshold = 5;\n    SecurityEvent\n    | where TimeGenerated > ago(timeRange)\n    | where EventID == 4624 or EventID == 4625\n    | where IpAddress != \"-\" and isnotempty(Account)\n    | extend Outcome = iff(EventID == 4624, \"Success\", \"Failure\")\n    // bin outcomes into 5 minute windows to reduce the volume of data\n    | summarize OutcomeCount=count() by Account, IpAddress, Computer, Outcome, bin(TimeGenerated, 5m)\n    | project TimeGenerated, Account, IpAddress, Computer, Outcome, OutcomeCount\n    // sort ready for sessionizing - by account and time of the authentication outcome\n    | sort by Account asc, TimeGenerated asc\n    | serialize \n    // sessionize into failure groupings until either the account changes or there is a success\n    | extend SessionStartedUtc = row_window_session(TimeGenerated, timeRange, authenticationWindow, Account != prev(Account) or prev(Outcome) == \"Success\")\n    // count the failures in each session\n    | summarize FailureCountBeforeSuccess=sumif(OutcomeCount, Outcome == \"Failure\"), StartTime=min(TimeGenerated), EndTime=max(TimeGenerated), makelist(Outcome), makeset(Computer), makeset(IpAddress) by SessionStartedUtc, Account\n    // the session must not start with a success, and must end with one\n    | where array_index_of(list_Outcome, \"Success\") != 0\n    | where array_index_of(list_Outcome, \"Success\") == array_length(list_Outcome) - 1\n    | project-away SessionStartedUtc, list_Outcome \n    // where the number of failures before the success is above the threshold \n    | where FailureCountBeforeSuccess >= authenticationThreshold\n    // expand out ip and computer for customer entity assignment\n    | mvexpand set_IpAddress, set_Computer\n    | extend IpAddress = tostring(set_IpAddress), Computer = tostring(set_Computer)\n    | extend timestamp=StartTime, AccountCustomEntity=Account, HostCustomEntity=Computer, IPCustomEntity=IpAddress"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics: 
+- CredentialAccess
+EventGroupSettings: 
+SuppressionDuration: PT1H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5M
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

@@ -1,0 +1,28 @@
+AlertRuleTemplateName: 
+Id: 2a062032-e7b6-4e14-a981-b4493e5ef4e1
+Enabled: true
+DisplayName: Malicious Inbox Rule
+Description: "Often times after the initial compromise the attackers create inbox rules to delete emails that contain certain keywords. \n   This is done so as to limit ability to warn compromised users that they've been compromised. Below is a sample query that tries to detect this.\n  Reference: https://www.reddit.com/r/sysadmin/comments/7kyp0a/recent_phishing_attempts_my_experience_and_what/"
+Query: "let Keywords = dynamic([\"helpdesk\", \" alert\", \" suspicious\", \"fake\", \"malicious\", \"phishing\", \"spam\", \"do not click\", \"do not open\", \"hijacked\", \"Fatal\"]);\r\n OfficeActivity\r\n | where Operation =~ \"New-InboxRule\"\r\n | where Parameters has \"Deleted Items\" or Parameters has \"Junk Email\" \r\n | extend Events=todynamic(Parameters)\r\n | parse Events  with * \"SubjectContainsWords\" SubjectContainsWords '}'*\r\n | parse Events  with * \"BodyContainsWords\" BodyContainsWords '}'*\r\n | parse Events  with * \"SubjectOrBodyContainsWords\" SubjectOrBodyContainsWords '}'*\r\n | where SubjectContainsWords has_any (Keywords)\r\n  or BodyContainsWords has_any (Keywords)\r\n  or SubjectOrBodyContainsWords has_any (Keywords)\r\n | extend ClientIPAddress = case( ClientIP has \".\", tostring(split(ClientIP,\":\")[0]), ClientIP has \"[\", tostring(trim_start(@'[[]',tostring(split(ClientIP,\"]\")[0]))), ClientIP )\r\n | extend Keyword = iff(isnotempty(SubjectContainsWords), SubjectContainsWords, (iff(isnotempty(BodyContainsWords),BodyContainsWords,SubjectOrBodyContainsWords )))\r\n | extend RuleDetail = case(OfficeObjectId contains '/' , tostring(split(OfficeObjectId, '/')[-1]) , tostring(split(OfficeObjectId, '\\\\')[-1]))\r\n | summarize count(), StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated) by  Operation, UserId, ClientIPAddress, ResultStatus, Keyword, OriginatingServer, OfficeObjectId, RuleDetail\r\n | extend timestamp = StartTimeUtc,  IPCustomEntity = ClientIPAddress, AccountCustomEntity = UserId , HostCustomEntity =  OriginatingServer"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: P1D
+QueryPeriod: P1D
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- Persistence
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

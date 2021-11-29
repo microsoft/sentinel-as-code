@@ -1,0 +1,12 @@
+AlertRuleTemplateName: 532c1811-79ee-4d9f-8d4d-6304c840daa1
+Id: aecb0ccf-af13-4c47-822d-63f39b54785d
+Enabled: true
+DisplayName: Create incidents based on Azure Active Directory Identity Protection alerts
+Description: Create incidents based on all alerts generated in Azure Active Directory Identity Protection
+SeveritiesFilter:
+- High
+DisplayNamesExcludeFilter: 
+DisplayNamesFilter: 
+ProductFilter: Azure Active Directory Identity Protection
+Tactics: 
+Kind: MicrosoftSecurityIncidentCreation

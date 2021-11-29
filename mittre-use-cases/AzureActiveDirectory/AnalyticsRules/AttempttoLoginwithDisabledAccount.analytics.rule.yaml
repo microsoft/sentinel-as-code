@@ -1,0 +1,32 @@
+AlertRuleTemplateName: 
+Id: c617a351-ba2f-4641-b0a2-79be4cf2a44a
+Enabled: true
+DisplayName: Attempt to Login with Disabled Account
+Description: ""
+Query: |-
+  SigninLogs
+  |where ResultType  == 50057
+  | project IPCustomEntity = IPAddress, HostCustomEntity = AppDisplayName , AccountCustomEntity = UserPrincipalName
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- InitialAccess
+- CredentialAccess
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings: 
+Kind: Scheduled

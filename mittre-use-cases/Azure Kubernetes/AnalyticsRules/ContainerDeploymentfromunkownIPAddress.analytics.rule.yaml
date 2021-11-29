@@ -1,0 +1,40 @@
+AlertRuleTemplateName: 
+Id: c6f11675-f031-47a5-80fa-4487ba5b6a46
+Enabled: true
+DisplayName: Container Deployment from unkown IPAddress
+Description: ""
+Query: "let lookup =  toscalar(_GetWatchlist('CIDR_Paw')|project IP_Address |summarize l=make_list(IP_Address));\r\nAzureActivity \r\n| where OperationName == \"Create or Update Container Registry\"\r\n| where ActivityStatus == \"Started\"\r\n| mv-apply l=lookup to typeof(string) on\r\n(\r\n  where ipv4_is_match (CallerIpAddress, l)\r\n)\r\n|join kind= anti (AzureActivity) on $left.EventDataId ==$right.EventDataId"
+SeveritiesFilter: 
+Severity: High
+QueryFrequency: PT5M
+QueryPeriod: PT5M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- DefenseEvasion
+EventGroupSettings:
+  aggregationKind: AlertPerResult
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: CallerIpAddress
+- entityType: AzureResource
+  fieldMappings:
+  - identifier: ResourceId
+    columnName: ResourceId
+- entityType: Account
+  fieldMappings:
+  - identifier: Name
+    columnName: Caller
+Kind: Scheduled

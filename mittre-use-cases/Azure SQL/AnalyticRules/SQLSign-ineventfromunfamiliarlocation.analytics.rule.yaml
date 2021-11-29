@@ -1,0 +1,57 @@
+AlertRuleTemplateName: 
+Id: 8cdfdf14-e80d-4a09-b97d-1628c583c5a7
+Enabled: true
+DisplayName: SQL Sign-in event from unfamiliar location
+Description: ""
+Query: |-
+  SecurityAlert
+  | where CompromisedEntity has "SQL"
+  | where AlertName has "Logon from an unusual location"
+  | where parse_json(ExtendedProperties).resourceType == "SQL Database"
+  | where AlertType has "GeoAnomaly"
+  | extend Client_Hostname_ = tostring(parse_json(ExtendedProperties).["Client Hostname"])
+  | extend Client_IP_Address_ = tostring(parse_json(ExtendedProperties).["Client IP Address"])
+  | extend Client_IP_Location_ = tostring(parse_json(ExtendedProperties).["Client IP Location"])
+  | extend Client_Principal_Name_ = tostring(parse_json(ExtendedProperties).["Client Principal Name"])
+  | where parse_json(ExtendedProperties).resourceType == "SQL Database"
+  | extend 0_ = tostring(parse_json(RemediationSteps)[0])
+  | extend City_ = tostring(parse_json(tostring(parse_json(Entities)[0].Location)).City)
+  | extend CountryName_ = tostring(parse_json(tostring(parse_json(Entities)[0].Location)).CountryName)
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: PT5M
+QueryPeriod: PT6M
+TriggerOperator: GreaterThan
+TriggerThreshold: 0
+Tactics:
+- InitialAccess
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings:
+- entityType: AzureResource
+  fieldMappings:
+  - identifier: ResourceId
+    columnName: ResourceId
+- entityType: Account
+  fieldMappings:
+  - identifier: Name
+    columnName: Client_Principal_Name_
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Client_Hostname_
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: Client_IP_Address_
+Kind: Scheduled

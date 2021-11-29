@@ -1,0 +1,36 @@
+AlertRuleTemplateName: 
+Id: 6519a26a-0662-46f9-98f3-572afe1a33f8
+Enabled: true
+DisplayName: Creation of expensive computes in Azure
+Description: "Identifies the creation of large size/expensive VMs (GPU or with large no of virtual CPUs) in Azure.\n  Adversary may create new or update existing virtual machines sizes to evade defenses \n  or use it for cryptomining purposes.\n  For Windows/Linux Vm Sizes - https://docs.microsoft.com/azure/virtual-machines/windows/sizes \n  Azure VM Naming Conventions - https://docs.microsoft.com/azure/virtual-machines/vm-naming-conventions"
+Query: "let tokens = dynamic([\"416\",\"208\",\"128\",\"120\",\"96\",\"80\",\"72\",\"64\",\"48\",\"44\",\"40\",\"g5\",\"gs5\",\"g4\",\"gs4\",\"nc12\",\"nc24\",\"nv12\"]);\r\n  let operationList = dynamic([\"Create or Update Virtual Machine\", \"Create Deployment\"]);\r\n  AzureActivity\r\n  | where OperationName in (operationList)\r\n  | where ActivityStatus == \"Accepted\" \r\n  | where isnotempty(Properties)\r\n  | extend vmSize = tolower(tostring(parse_json(tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).responseBody)).properties)).hardwareProfile)).vmSize))\r\n  | where isnotempty(vmSize)\r\n  | where vmSize has_any (tokens) \r\n  | extend ComputerName = tostring(parse_json(tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).responseBody)).properties)).osProfile)).computerName)\r\n  | extend clientIpAddress = tostring(parse_json(HTTPRequest).clientIpAddress)\r\n  | project TimeGenerated, OperationName, ActivityStatus, Caller, CallerIpAddress, ComputerName, vmSize\r\n  | extend timestamp = TimeGenerated, AccountCustomEntity = Caller, IPCustomEntity = CallerIpAddress"
+SeveritiesFilter: 
+Severity: Medium
+QueryFrequency: P1D
+QueryPeriod: P1D
+TriggerOperator: GreaterThan
+TriggerThreshold: 1
+Tactics:
+- DefenseEvasion
+EventGroupSettings:
+  aggregationKind: SingleAlert
+SuppressionDuration: PT5H
+SuppressionEnabled: false
+IncidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: false
+    reopenClosedIncident: false
+    lookbackDuration: PT5H
+    entitiesMatchingMethod: All
+    groupByEntities: []
+EntityMappings:
+- entityType: Account
+  fieldMappings:
+  - identifier: FullName
+    columnName: AccountCustomEntity
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+Kind: Scheduled

@@ -1,0 +1,8 @@
+[
+    {
+        "Tactic" : "Discovery",
+        "Techniques": [
+            "T1526"
+        ]
+    }
+]
