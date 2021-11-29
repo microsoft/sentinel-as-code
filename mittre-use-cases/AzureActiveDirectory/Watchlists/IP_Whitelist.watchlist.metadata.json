@@ -2,5 +2,5 @@
     "Name" : "IP_Whitelist",
     "Description" : "Whitelist for Non-Approval IPs",
     "Source" : "IP_Whitelist.csv",
-    "Provider" : "NESTLE"
+    "Provider" : "Contoso"
 }

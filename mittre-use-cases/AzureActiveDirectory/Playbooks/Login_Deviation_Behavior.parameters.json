@@ -9,7 +9,7 @@
             "value": "[settings('azuresentinel').Id]"
         },
         "emailNotification": {
-            "value": "contoso@nestle.com"
+            "value": "contoso@Contoso.com"
         },
         "sentinelManagedIdentity": {
             "value": "[settings('managedidentity').Name]"

@@ -19,13 +19,13 @@
     GUID = '9c4cc043-7e08-4ff4-8840-018f1729b091'
     
     # Author of this module
-    Author = 'NESTLE Azure DevOps'
+    Author = 'Contoso Azure DevOps'
     
     # Company or vendor of this module
-    CompanyName = 'NESTLE'
+    CompanyName = 'Contoso'
     
     # Copyright statement for this module
-    Copyright = '(c) NESTLE Powershell. All rights reserved.'
+    Copyright = '(c) Contoso Powershell. All rights reserved.'
     
     # Description of the functionality provided by this module
     Description = 'Experimental Module for KQL Validation'

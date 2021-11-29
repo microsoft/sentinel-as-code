@@ -17,13 +17,13 @@
     GUID = '2e80f563-09ce-4bb1-9d45-46a07c4b18d4'
     
     # Author of this module
-    Author = 'NESTLE Azure DevOps'
+    Author = 'Contoso Azure DevOps'
     
     # Company or vendor of this module
-    CompanyName = 'NESTLE'
+    CompanyName = 'Contoso'
     
     # Copyright statement for this module
-    Copyright = '(c) NESTLE Powershell. All rights reserved.'
+    Copyright = '(c) Contoso Powershell. All rights reserved.'
     
     # Description of the functionality provided by this module
     Description = 'Experimental Module for Manage Sentinel Watchlists'

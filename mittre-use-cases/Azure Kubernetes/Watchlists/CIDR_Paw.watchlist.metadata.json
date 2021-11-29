@@ -2,5 +2,5 @@
     "Name" : "CIDR_Paw",
     "Description" : "Priviledge Access Workstations IPs",
     "Source" : "CIDR_Paw.csv",
-    "Provider" : "NESTLE"
+    "Provider" : "Contoso"
 }

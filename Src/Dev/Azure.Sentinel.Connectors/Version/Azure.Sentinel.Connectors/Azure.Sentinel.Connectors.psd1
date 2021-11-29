@@ -17,13 +17,13 @@
     GUID = '3621d930-c4dd-473a-8e9a-9152a85d8bdc'
     
     # Author of this module
-    Author = 'NESTLE Azure DevOps'
+    Author = 'Contoso Azure DevOps'
     
     # Company or vendor of this module
-    CompanyName = 'NESTLE'
+    CompanyName = 'Contoso'
     
     # Copyright statement for this module
-    Copyright = '(c) NESTLE Powershell. All rights reserved.'
+    Copyright = '(c) Contoso Powershell. All rights reserved.'
     
     # Description of the functionality provided by this module
     Description = 'Experimental Module for Sentinel Data Connectors'

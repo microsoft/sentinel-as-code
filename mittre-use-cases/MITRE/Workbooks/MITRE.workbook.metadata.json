@@ -437,7 +437,7 @@
       }
     ],
     "fallbackResourceIds": [
-      "/subscriptions/bb520028-63ff-4385-a056-72f07d62c384/resourcegroups/nenestlesiem002/providers/microsoft.operationalinsights/workspaces/nenestlesnl002"
+      "/subscriptions/bb520028-63ff-4385-a056-72f07d62c384/resourcegroups/neContososiem002/providers/microsoft.operationalinsights/workspaces/neContososnl002"
     ],
     "fromTemplateId": "sentinel-mitreattack",
     "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"

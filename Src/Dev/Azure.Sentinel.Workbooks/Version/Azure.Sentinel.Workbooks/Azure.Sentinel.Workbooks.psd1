@@ -17,13 +17,13 @@
     GUID = '18dfaabb-6152-4bde-940b-05ce038f7f51'
     
     # Author of this module
-    Author = 'NESTLE Azure DevOps'
+    Author = 'Contoso Azure DevOps'
     
     # Company or vendor of this module
-    CompanyName = 'NESTLE'
+    CompanyName = 'Contoso'
     
     # Copyright statement for this module
-    Copyright = '(c) NESTLE Powershell. All rights reserved.'
+    Copyright = '(c) Contoso Powershell. All rights reserved.'
     
     # Description of the functionality provided by this module
     Description = 'Experimental Module for Manage Sentinel Workbooks'
