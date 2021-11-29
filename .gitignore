@@ -1,0 +1,8 @@
+**/**.manifest
+**/**.testlog
+**/.suo
+**/**.dtbcache.v2
+**/**.cache
+**/bin/**
+**/obj/**
+*.sqlite
