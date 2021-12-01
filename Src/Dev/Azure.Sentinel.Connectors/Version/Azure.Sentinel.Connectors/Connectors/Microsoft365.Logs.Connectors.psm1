@@ -6,7 +6,7 @@ if($null -eq $Module) {
 $ModulesLocation = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 Import-Module -Name "$($ModulesLocation)\Azure.Connectors.Common.psm1"
 
-function New-AzSentinelO365LogConnector {
+function New-AzSentinelMicrosoft365LogConnector {
     param (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -65,9 +65,9 @@ function New-AzSentinelO365LogConnector {
     }       
 }
 
-class Office365LogsDataConnector : DataConnector {
+class Microsoft365LogsDataConnector : DataConnector {
 
-    Office365LogsDataConnector () {
+    Microsoft365LogsDataConnector () {
 
     }
 
@@ -90,7 +90,7 @@ class Office365LogsDataConnector : DataConnector {
         RunAs {
             switch ($Action) {
                 "Enable" {  
-                    New-AzSentinelO365LogConnector -ResourceGroup $ResourceGroup `
+                    New-AzSentinelMicrosoft365LogConnector -ResourceGroup $ResourceGroup `
                                                     -Workspace $Workspace `
                                                     -SharePoint $SharePoint `
                                                     -Exchange $Exchange `
@@ -100,7 +100,7 @@ class Office365LogsDataConnector : DataConnector {
                     $connector = Get-AzSentinelDataConnector -ResourceGroupName $ResourceGroup -WorkspaceName $Workspace | Where-Object {$_.Kind -eq "Office365"}
                     if($null -ne $connector){
                         Remove-AzSentinelDataConnector -DataConnectorId $connector.Name -ResourceGroupName $ResourceGroup -WorkspaceName $Workspace
-                        New-AzSentinelO365LogConnector -ResourceGroup $ResourceGroup `
+                        New-AzSentinelMicrosoft365LogConnector -ResourceGroup $ResourceGroup `
                                                     -Workspace $Workspace `
                                                     -SharePoint $SharePoint `
                                                     -Exchange $Exchange `

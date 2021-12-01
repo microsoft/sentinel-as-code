@@ -3,9 +3,9 @@ if($null -eq $Module) {
     Install-Module -Name Az.SecurityInsights -Force
 }
 
-class AzureSecurityCenterDataConnector : DataConnector {
+class MicrosoftDefenderCloud : DataConnector {
 
-    AzureSecurityCenterDataConnector () {
+    MicrosoftDefenderCloud () {
 
     }
 

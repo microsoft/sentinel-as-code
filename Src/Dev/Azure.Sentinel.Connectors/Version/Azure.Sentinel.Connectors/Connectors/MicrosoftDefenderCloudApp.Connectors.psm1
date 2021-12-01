@@ -6,9 +6,9 @@ if($null -eq $Module) {
 $ModulesLocation = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 Import-Module -Name "$($ModulesLocation)\Azure.Connectors.Common.psm1"
 
-class MicrosoftCloudAppSecurityDataConnector : DataConnector {
+class MicrosoftDefenderCloudAppDataConnector : DataConnector {
 
-    MicrosoftCloudAppSecurityDataConnector () {
+    MicrosoftDefenderCloudAppDataConnector () {
     }
     [void] Invoke ([string]$ResourceGroup, [string]$Workspace, [ConnectorAction] $Action, [Hashtable] $Parameters) {
         $Alerts = $Parameters.Alerts 
