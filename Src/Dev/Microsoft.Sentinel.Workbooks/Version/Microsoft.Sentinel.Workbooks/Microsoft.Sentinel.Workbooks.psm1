@@ -15,7 +15,7 @@ function New-AzSentinelWorkbook {
         $MetadataParametersFile,
         [Parameter(Mandatory = $false)]
         [string]
-        $TemplatePath = "$PSScriptRoot\Azure.Sentinel.Workbooks.template.json"
+        $TemplatePath = "$PSScriptRoot\Microsoft.Sentinel.Workbooks.template.json"
     )
     $Content = Get-Content -Raw -Path $MetadataFile
     $MetadataParameters = Get-Content -Raw -Path $MetadataParametersFile | ConvertFrom-Json
