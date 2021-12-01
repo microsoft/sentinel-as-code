@@ -6,7 +6,7 @@ if($null -eq $Module) {
 $ModulesLocation = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 Import-Module -Name "$($ModulesLocation)\Azure.Connectors.Common.psm1"
 
-function New-AzSentinelO365DefenderConnector {
+function New-AzSentinelMicrosoft365DefenderConnector {
     param (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -53,9 +53,9 @@ function New-AzSentinelO365DefenderConnector {
     }       
 }
 
-class Office365DefenderDataConnector : DataConnector {
+class Microsoft365DefenderDataConnector : DataConnector {
 
-    Office365DefenderDataConnector () {
+    Microsoft365DefenderDataConnector () {
 
     }
 
@@ -69,7 +69,7 @@ class Office365DefenderDataConnector : DataConnector {
         RunAs {
             switch ($Action) {
                 "Enable" {  
-                    New-AzSentinelO365DefenderConnector -ResourceGroup $ResourceGroup `
+                    New-AzSentinelMicrosoft365DefenderConnector -ResourceGroup $ResourceGroup `
                                                     -Workspace $Workspace `
                                                     -Alerts $Alerts
                 }
@@ -77,7 +77,7 @@ class Office365DefenderDataConnector : DataConnector {
                     $Connector = Get-AzSentinelDataConnector -ResourceGroupName $ResourceGroup -WorkspaceName $Workspace | Where-Object {$_.Kind -eq "OfficeATP"}
                     if($null -ne $Connector){
                         Remove-AzSentinelDataConnector -DataConnectorId $Connector.Name -ResourceGroupName $ResourceGroup -WorkspaceName $Workspace
-                        New-AzSentinelO365DefenderConnector -ResourceGroup $ResourceGroup `
+                        New-AzSentinelMicrosoft365DefenderConnector -ResourceGroup $ResourceGroup `
                                                     -Workspace $Workspace `
                                                     -Alerts $Alerts 
                     }
