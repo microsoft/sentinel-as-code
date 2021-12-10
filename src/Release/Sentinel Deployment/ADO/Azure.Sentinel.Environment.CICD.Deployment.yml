@@ -1,0 +1,752 @@
+#
+# Azure DevOps Yaml Pipeline: Release and Manage Configuration for Sentinel in a Pre-Defined Environment 
+#
+
+trigger: none
+
+pool:
+  vmImage: 'windows-latest'
+
+parameters:
+  - name: ServiceConnectionName
+    displayName: Azure Environment Connection
+    type: string  
+  - name: Action
+    displayName: Action to apply to Connectors
+    type: string
+    default: None
+    values:
+      - None
+      - Enable
+      - Disable
+      - Check
+      - Update
+  - name: UsePreRelease
+    displayName: Use Powershell Pre-Release Artifacts
+    type: boolean
+    default: false
+
+variables:
+  - name: ResourceGroupName
+  - name: ResourceName
+  - name: LogAnalyticsAlreadyExists
+  - name: SentinelAlreadyExists
+  - name: SentinelIsDefined
+  - name: Location
+  - name: EnvironmentLocation
+  - name: KeyVaultName
+  - name: KeyVaultAlreadyExists
+  - name: KeyVaultIsDefined
+  - name: ManagedIdentityName
+  - name: ManagedIdentityAlreadyExists
+  - name: ManagedIdentityIsDefined
+  - name: AutomationManagedIdentityIsDefined
+  - name: AutomationAccountName
+  - name: AutomationAccountAlreadyExists
+  - name: AutomationAccountIsDefined
+  - name: StorageAccountName
+  - name: StorageAccountAlreadyExists
+  - name: StorageAccountIsDefined
+  - name: AutomationConnectionName
+  - name: AutomationConnectionAlreadyExists
+  - name: AutomationConnectionIsDefined
+  - name: KeyVaultConnectionName
+  - name: KeyVaultConnectionAlreadyExists
+  - name: KeyVaultConnectionIsDefined
+  - name: SentinelConnectionName
+  - name: SentinelConnectionAlreadyExists
+  - name: SentinelConnectionIsDefined
+  - name: EventhubNamespaceName0
+  - name: EventhubNamespaceName0AlreadyExists
+  - name: EventhubNamespaceName0IsDefined
+  - name: EventhubNamespaceName1
+  - name: EventhubNamespaceName1AlreadyExists
+  - name: EventhubNamespaceName1IsDefined
+  - name: EventhubNamespaceName2
+  - name: EventhubNamespaceName2AlreadyExists
+  - name: EventhubNamespaceName2IsDefined
+  - name: EventhubNamespaceName3
+  - name: EventhubNamespaceName3AlreadyExists
+  - name: EventhubNamespaceName3IsDefined
+  - name: EventhubNamespaceName4
+  - name: EventhubNamespaceName4AlreadyExists
+  - name: EventhubNamespaceName4IsDefined
+  - name: EventhubNamespaceName5
+  - name: EventhubNamespaceName5AlreadyExists
+  - name: EventhubNamespaceName5IsDefined
+  - name: EventhubNamespaceName6
+  - name: EventhubNamespaceName6AlreadyExists
+  - name: EventhubNamespaceName6IsDefined
+  - name: EventhubNamespaceName7
+  - name: EventhubNamespaceName7AlreadyExists
+  - name: EventhubNamespaceName7IsDefined
+  - name: EventhubNamespaceName8
+  - name: EventhubNamespaceName8AlreadyExists
+  - name: EventhubNamespaceName8IsDefined
+  - name: EventhubNamespaceName9
+  - name: EventhubNamespaceName9AlreadyExists
+  - name: EventhubNamespaceName9IsDefined
+
+
+resources:
+  repositories:
+  - repository: AzureSentinel
+    type: git
+    name: SOC/Artifacts
+    ref: $(Build.SourceBranchName)
+
+
+steps:
+- checkout: self
+- checkout: AzureSentinel
+
+- task: NuGetToolInstaller@1
+  displayName: Setup Nuget Tools
+  name: NugetToolSetup
+  inputs:
+    versionSpec: 
+    checkLatest: true
+
+- task: NuGetAuthenticate@0
+  condition: succeeded()
+  displayName: Authenticating with Sentinel Nuget
+  name: NugetAuthentication
+  inputs:
+    nuGetServiceConnections: 'Nuget Framework Connection'
+
+- task: PowerShell@2
+  condition: succeeded()
+  displayName: Resolving Feed Url
+  name: FeedUriResolver
+  inputs:
+    targetType: 'inline'
+    script: |
+      $FeedManifest = $Env:VSS_NUGET_EXTERNAL_FEED_ENDPOINTS | ConvertFrom-Json
+      Write-Host "##vso[task.setvariable variable=FEED_URL;issecret=false;]$($FeedManifest.endpointCredentials.endpoint)"
+
+- task: PowerShell@2
+  displayName: DevOps Artifact Feed
+  condition: succeeded()
+  name: ConnectArtifactFeed
+  inputs:
+    targetType: 'inline'
+    pwsh: true
+    script: |
+      nuget.exe sources add -Name NugetFramework -Source $(FEED_URL) -Username "PAT" -Password $(VSS_NUGET_ACCESSTOKEN) 
+      $(Build.SourcesDirectory)/Framework/Src/Build/Azure.Sentinel.Powershell.Nuget.Connect.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Location $(FEED_URL) -Name NugetFramework
+      try {
+        $Credentials = $(Build.SourcesDirectory)/Framework/Src/Build/Azure.Sentinel.Powershell.Nuget.Credentials.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)"
+        $AllowPrerelease = [bool]::Parse("${{ parameters.UsePreRelease }}")
+        Install-Module -Name "Azure.Deployment.Environment" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Azure.Sentinel.Connectors.Management" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Azure.Sentinel.Connectors" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Azure.Sentinel.Automation" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+      }
+      finally {
+        (Get-Module -Name Azure.Deployment.Environment -ListAvailable) | ft Name, Version
+        (Get-Module -Name Azure.Sentinel.Connectors.Management -ListAvailable) | ft Name, Version
+        (Get-Module -Name Azure.Sentinel.Connectors -ListAvailable) | ft Name, Version
+        (Get-Module -Name Azure.Sentinel.Automation -ListAvailable) | ft Name, Version
+        $(Build.SourcesDirectory)/Framework/Src/Build/Azure.Sentinel.Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
+      }
+
+
+- task: AzurePowerShell@5
+  name: ResourceSettings
+  condition: succeeded()
+  displayName: Prepare Resource Naming
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Import-Module -Name $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.DevOps.Extensions.psm1
+      $Environment = $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Environments.ps1 -Path $(System.DefaultWorkingDirectory)/Artifacts/Src/Deploy/Environments
+      $Environment
+      Set-AzureDevOpsVariable ResourceGroupName = $Environment.ResourceGroupName
+      Set-AzureDevOpsVariable ResourceName = $Environment.LogAnalyticsWorkspaceName
+      Set-AzureDevOpsVariable KeyVaultName = $Environment.KeyVaultName
+      Set-AzureDevOpsVariable AutomationAccountName = $Environment.AutomationAccountName
+      Set-AzureDevOpsVariable ManagedIdentityName = $Environment.ManagedIdentityName
+      Set-AzureDevOpsVariable SentinelConnectionName = $Environment.SentinelConnectionName
+      Set-AzureDevOpsVariable AutomationConnectionName = $Environment.AutomationAccountConnectionName
+      Set-AzureDevOpsVariable KeyVaultConnectionName = $Environment.KeyVaultConnectionName
+      Set-AzureDevOpsVariable StorageAccountName = $Environment.StorageAccountName
+      Set-AzureDevOpsVariable Location = $Environment.Location
+      $EventHubNamespaces = $Environment.EventHubNamespaces
+      $Maximum = $EventHubNamespaces.Length
+      0..($Maximum -1) | ForEach-Object {
+        $EventHubNamespaceEntry = $EventHubNamespaces[$_]
+        Write-Verbose $EventHubNamespaceEntry
+        if($null -ne $EventHubNamespaceEntry) {
+           Set-AzureDevOpsVariable "EventhubNamespaceName$($_)" = $EventHubNamespaceEntry
+        }
+      }
+      Set-AzureDevOpsVariable EnvironmentLocation = $Environment.Source | Split-Path
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+- task: AzurePowerShell@5
+  name: CheckResourceExists
+  condition: succeeded()
+  displayName: Validate existing resources
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Write-Host "Checking if Resource Group '$(ResourceGroupName)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(ResourceName)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.OperationalInsights/workspaces" -VariableNameExists "LogAnalyticsAlreadyExists" -VariableNameNotDefined "LogAnalyticsIsDefined"
+      Write-Host "Checking if Sentinel 'SecurityInsights($(ResourceName))' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "SecurityInsights($(ResourceName))" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.OperationsManagement/solutions" -VariableNameExists "SentinelAlreadyExists" -VariableNameNotDefined "SentinelIsDefined"
+      Write-Host "Checking if Sentinel '$(KeyVaultName)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(KeyVaultName)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.KeyVault/vaults" -VariableNameExists "KeyVaultAlreadyExists" -VariableNameNotDefined "KeyVaultIsDefined"
+      Write-Host "Checking if Managed Identity '$(ManagedIdentityName)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(ManagedIdentityName)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.ManagedIdentity/userAssignedIdentities" -VariableNameExists "ManagedIdentityAlreadyExists" -VariableNameNotDefined "ManagedIdentityIsDefined"
+      Write-Host "Checking if Azure Automation Account '$(AutomationAccountName)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(AutomationAccountName)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.Automation/automationAccounts" -VariableNameExists "AutomationAccountAlreadyExists" -VariableNameNotDefined "AutomationAccountIsDefined"
+      Write-Host "Checking if Azure Sentinel Connection '$(SentinelConnectionName)' for Logic App exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(SentinelConnectionName)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.Web/connections" -VariableNameExists "SentinelConnectionAlreadyExists" -VariableNameNotDefined "SentinelConnectionIsDefined"
+      Write-Host "Checking if Azure Sentinel Connection '$(KeyVaultConnectionName)' for Logic App exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(KeyVaultConnectionName)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.Web/connections" -VariableNameExists "KeyVaultConnectionAlreadyExists" -VariableNameNotDefined "KeyVaultConnectionIsDefined"
+      Write-Host "Checking if Azure Automation Connection '$(AutomationConnectionName)' for Logic App exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(AutomationConnectionName)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.Web/connections" -VariableNameExists "AutomationConnectionAlreadyExists" -VariableNameNotDefined "AutomationConnectionIsDefined"
+      Write-Host "Checking if Azure Automation Connection '$(StorageAccountName)' for Storage Account exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(StorageAccountName)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.Storage/storageAccounts" -VariableNameExists "StorageAccountAlreadyExists" -VariableNameNotDefined "StorageAccountIsDefined"
+      Write-Host "Checking if Azure Event Hub Namespace '$(EventhubNamespaceName0)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(EventhubNamespaceName0)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.EventHub/namespaces" -VariableNameExists "EventhubNamespaceName0AlreadyExists" -VariableNameNotDefined "EventhubNamespaceName0IsDefined"
+      Write-Host "Checking if Azure Event Hub Namespace '$(EventhubNamespaceName1)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(EventhubNamespaceName1)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.EventHub/namespaces" -VariableNameExists "EventhubNamespaceName1AlreadyExists" -VariableNameNotDefined "EventhubNamespaceName1IsDefined"
+      Write-Host "Checking if Azure Event Hub Namespace '$(EventhubNamespaceName2)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(EventhubNamespaceName2)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.EventHub/namespaces" -VariableNameExists "EventhubNamespaceName2AlreadyExists" -VariableNameNotDefined "EventhubNamespaceName2IsDefined"
+      Write-Host "Checking if Azure Event Hub Namespace '$(EventhubNamespaceName3)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(EventhubNamespaceName3)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.EventHub/namespaces" -VariableNameExists "EventhubNamespaceName3AlreadyExists" -VariableNameNotDefined "EventhubNamespaceName3IsDefined"
+      Write-Host "Checking if Azure Event Hub Namespace '$(EventhubNamespaceName4)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(EventhubNamespaceName4)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.EventHub/namespaces" -VariableNameExists "EventhubNamespaceName4AlreadyExists" -VariableNameNotDefined "EventhubNamespaceName4IsDefined"
+      Write-Host "Checking if Azure Event Hub Namespace '$(EventhubNamespaceName5)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(EventhubNamespaceName5)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.EventHub/namespaces" -VariableNameExists "EventhubNamespaceName5AlreadyExists" -VariableNameNotDefined "EventhubNamespaceName5IsDefined"
+      Write-Host "Checking if Azure Event Hub Namespace '$(EventhubNamespaceName6)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(EventhubNamespaceName6)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.EventHub/namespaces" -VariableNameExists "EventhubNamespaceName6AlreadyExists" -VariableNameNotDefined "EventhubNamespaceName6IsDefined"
+      Write-Host "Checking if Azure Event Hub Namespace '$(EventhubNamespaceName7)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(EventhubNamespaceName7)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.EventHub/namespaces" -VariableNameExists "EventhubNamespaceName7AlreadyExists" -VariableNameNotDefined "EventhubNamespaceName7IsDefined"
+      Write-Host "Checking if Azure Event Hub Namespace '$(EventhubNamespaceName8)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(EventhubNamespaceName8)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.EventHub/namespaces" -VariableNameExists "EventhubNamespaceName8AlreadyExists" -VariableNameNotDefined "EventhubNamespaceName8IsDefined"
+      Write-Host "Checking if Azure Event Hub Namespace '$(EventhubNamespaceName9)' exists"
+      $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Deployment.Resource.Check.ps1 -ResourceName "$(EventhubNamespaceName9)" -ResourceGroupName "$(ResourceGroupName)" -ResourceType "Microsoft.EventHub/namespaces" -VariableNameExists "EventhubNamespaceName9AlreadyExists" -VariableNameNotDefined "EventhubNamespaceName9IsDefined"
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment
+  condition: and(succeeded(), and(eq(variables['SentinelAlreadyExists'], 'False'), eq(variables['LogAnalyticsAlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Sentinel-Deployment'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/Sentinel/LogAnalyticsAndSentinel.template.json'
+    overrideParameters: -workspaceName $(ResourceName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'    
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (using Log Analytics)
+  condition: and(succeeded(), and(eq(variables['SentinelAlreadyExists'], 'False'), eq(variables['LogAnalyticsAlreadyExists'], 'True')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Sentinel-Deployment'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/Sentinel/Sentinel.template.json'
+    overrideParameters: -workspaceName $(ResourceName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Azure Key Vault)
+  condition: and(succeeded(), and(eq(variables['KeyVaultIsDefined'], 'True'), eq(variables['KeyVaultAlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Sentinel-Key-Vault-Deployment'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/KeyVault/Azure.KeyVault.Deployment.json'
+    overrideParameters: -name $(KeyVaultName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Managed Identity)
+  condition: and(succeeded(), and(eq(variables['ManagedIdentityIsDefined'], 'True'), eq(variables['ManagedIdentityAlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Sentinel-Managed-Identity-Deployment'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/Sentinel/Managed.Identity.json'
+    overrideParameters: -name $(ManagedIdentityName) -sentinel $(ResourceName) -automation $(AutomationAccountName) -storageaccount $(StorageAccountName) -keyvault $(KeyVaultName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Automation Account)
+  condition: and(succeeded(), and(eq(variables['AutomationAccountIsDefined'], 'True'), eq(variables['AutomationAccountAlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Sentinel-Managed-Identity-Deployment'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/Automation/Azure.Automation.json'
+    overrideParameters: -name $(AutomationAccountName) -lawName $(ResourceName) -sentinel $(ResourceName) -keyvault $(KeyVaultName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Automation Account Roles)
+  condition: and(succeeded(), and(eq(variables['AutomationAccountIsDefined'], 'True'), eq(variables['AutomationAccountAlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Sentinel-Managed-Identity-Deployment'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/Automation/Azure.Automation.Roles.Deployment.json'
+    overrideParameters: -Name $(AutomationAccountName) -sentinelUserIdentity $(ManagedIdentityName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Sentinel Logic App Connection)
+  condition: and(succeeded(), and(eq(variables['SentinelConnectionIsDefined'], 'True'), eq(variables['SentinelConnectionAlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Sentinel-Logic-App-Connection-Deployment'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/Sentinel/Azure.Sentinel.LogicApp.Connection.json'
+    overrideParameters: -name $(SentinelConnectionName) 
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Automation Logic App Connection)
+  condition: and(succeeded(), and(eq(variables['AutomationConnectionIsDefined'], 'True'), eq(variables['AutomationConnectionAlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Automation-Logic-App-Connection-Deployment'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/Automation/Azure.Automation.LogicApp.Connection.json'
+    overrideParameters: -name $(AutomationConnectionName) 
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (KeyVault Logic App Connection)
+  condition: and(succeeded(), and(eq(variables['KeyVaultConnectionIsDefined'], 'True'), eq(variables['KeyVaultConnectionAlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Automation-Logic-App-Connection-Deployment'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/KeyVault/Azure.KeyVault.LogicApp.Connection.json'
+    overrideParameters: -name $(KeyVaultConnectionName) -keyvault $(KeyVaultName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Azure Storage Account)
+  condition: and(succeeded(), and(eq(variables['StorageAccountIsDefined'], 'True'), eq(variables['StorageAccountAlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Sentinel-Storage-Account-Deployment'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/StorageAccount/Azure.StorageAccout.Deployment.json'
+    overrideParameters: -name $(StorageAccountName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Azure Storage Account Roles)
+  condition: and(succeeded(), and(eq(variables['StorageAccountIsDefined'], 'True'), eq(variables['StorageAccountAlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Sentinel-Storage-Account-Deployment'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/StorageAccount/Azure.StorageAccount.Roles.Deployment.json'
+    overrideParameters: -name $(StorageAccountName) -automationAccountSystemIdentity $(AutomationAccountName) -sentinelUserIdentity $(ManagedIdentityName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName0))
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName0IsDefined'], 'True'), eq(variables['EventhubNamespaceName0AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-$(EventhubNamespaceName0)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Deployment.json'
+    overrideParameters: -name $(EventhubNamespaceName0) 
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName0) Roles)
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName0IsDefined'], 'True'), eq(variables['EventhubNamespaceName0AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName0)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    overrideParameters: -Name $(EventhubNamespaceName0) -automationAccount $(AutomationAccountName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName1))
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName1IsDefined'], 'True'), eq(variables['EventhubNamespaceName1AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-$(EventhubNamespaceName1)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Deployment.json'
+    overrideParameters: -name $(EventhubNamespaceName1) 
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName1) Roles)
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName1IsDefined'], 'True'), eq(variables['EventhubNamespaceName1AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName1)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    overrideParameters: -Name $(EventhubNamespaceName1) -automationAccount $(AutomationAccountName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName2))
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName2IsDefined'], 'True'), eq(variables['EventhubNamespaceName2AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-$(EventhubNamespaceName2)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Deployment.json'
+    overrideParameters: -name $(EventhubNamespaceName2) 
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName2) Roles)
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName2IsDefined'], 'True'), eq(variables['EventhubNamespaceName2AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName2)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    overrideParameters: -Name $(EventhubNamespaceName2) -automationAccount $(AutomationAccountName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName3))
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName3IsDefined'], 'True'), eq(variables['EventhubNamespaceName3AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-$(EventhubNamespaceName3)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Deployment.json'
+    overrideParameters: -name $(EventhubNamespaceName3) 
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName3) Roles)
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName3IsDefined'], 'True'), eq(variables['EventhubNamespaceName3AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName3)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    overrideParameters: -Name $(EventhubNamespaceName3) -automationAccount $(AutomationAccountName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName4))
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName4IsDefined'], 'True'), eq(variables['EventhubNamespaceName4AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-$(EventhubNamespaceName4)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Deployment.json'
+    overrideParameters: -name $(EventhubNamespaceName4) 
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName4) Roles)
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName4IsDefined'], 'True'), eq(variables['EventhubNamespaceName4AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName4)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    overrideParameters: -Name $(EventhubNamespaceName4) -automationAccount $(AutomationAccountName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName5))
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName5IsDefined'], 'True'), eq(variables['EventhubNamespaceName5AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-$(EventhubNamespaceName5)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Deployment.json'
+    overrideParameters: -name $(EventhubNamespaceName5) 
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName5) Roles)
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName5IsDefined'], 'True'), eq(variables['EventhubNamespaceName5AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName5)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    overrideParameters: -Name $(EventhubNamespaceName5) -automationAccount $(AutomationAccountName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName6))
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName6IsDefined'], 'True'), eq(variables['EventhubNamespaceName6AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-$(EventhubNamespaceName6)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Deployment.json'
+    overrideParameters: -name $(EventhubNamespaceName6) 
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName6) Roles)
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName6IsDefined'], 'True'), eq(variables['EventhubNamespaceName6AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName6)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    overrideParameters: -Name $(EventhubNamespaceName6) -automationAccount $(AutomationAccountName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName7))
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName7IsDefined'], 'True'), eq(variables['EventhubNamespaceName7AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-$(EventhubNamespaceName7)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Deployment.json'
+    overrideParameters: -name $(EventhubNamespaceName7) 
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName1) Roles)
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName7IsDefined'], 'True'), eq(variables['EventhubNamespaceName7AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName7)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    overrideParameters: -Name $(EventhubNamespaceName7) -automationAccount $(AutomationAccountName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName8))
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName8IsDefined'], 'True'), eq(variables['EventhubNamespaceName8AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-$(EventhubNamespaceName8)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Deployment.json'
+    overrideParameters: -name $(EventhubNamespaceName8) 
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName8) Roles)
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName8IsDefined'], 'True'), eq(variables['EventhubNamespaceName8AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName8)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    overrideParameters: -Name $(EventhubNamespaceName8) -automationAccount $(AutomationAccountName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName9))
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName9IsDefined'], 'True'), eq(variables['EventhubNamespaceName9AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-$(EventhubNamespaceName9)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Deployment.json'
+    overrideParameters: -name $(EventhubNamespaceName9) 
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: Azure Sentinel Deployment (Event Hub Namespace $(EventhubNamespaceName1) Roles)
+  condition: and(succeeded(), and(eq(variables['EventhubNamespaceName9IsDefined'], 'True'), eq(variables['EventhubNamespaceName9AlreadyExists'], 'False')))
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: ${{ parameters.ServiceConnectionName }}
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: $(ResourceGroupName)
+    location: '$(Location)'
+    deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName9)'
+    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Deploy/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    overrideParameters: -Name $(EventhubNamespaceName9) -automationAccount $(AutomationAccountName)
+    templateLocation: 'Linked artifact'
+    deploymentMode: 'Incremental'
+
+- task: AzurePowerShell@5
+  name: ManageSentinelConnector
+  displayName: ${{ parameters.Action }} Sentinel Connectors
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'InlineScript'
+    Inline: |
+      try {
+        Write-Host "Working over Connectors"
+        $SelectedAction = "${{ parameters.Action }}"
+        Write-Host "`tAction Selected: $($SelectedAction)"
+        $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path
+        $ConnectorsSettingsLocation = Join-Path -Path $EnvironmentDirectory -ChildPath "Connectors"
+        $ConnectorsLocation = Get-AzSentinelConnectorsLocation
+        $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Sentinel/Azure.Sentinel.DataConnectors.Runtime.ps1 -ResourceGroupName $(ResourceGroupName) -Workspace $(ResourceName) -Action $SelectedAction -ConnectorsPath $ConnectorsLocation -ConnectorSettingsPath $ConnectorsSettingsLocation
+      }
+      catch {
+        Write-Host "##vso[task.logissue type=warning;result=SucceededWithIssues]$_"
+      }
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Framework'
+- task: AzurePowerShell@5
+  name: ManagePlaybooksConnections
+  displayName: Activating Playbook Connections
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'InlineScript'
+    Inline: |
+      try {
+        $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path
+        $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Sentinel/Azure.Sentinel.Playbooks.Connections.Deployment.ps1 -ResourceGroupName $(ResourceGroupName) -Path $EnvironmentDirectory
+      }
+      catch {
+        Write-Host "##vso[task.logissue type=warning;result=SucceededWithIssues]$_"
+      }
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Framework'
+- task: AzurePowerShell@5
+  name: ManageSentinelIntegration
+  displayName: Activating Integration Features
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'InlineScript'
+    Inline: |
+      try {
+        $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path
+        $EnvironmentTablesDefinitionPath = Join-Path -Path $EnvironmentDirectory -ChildPath "Environment.Integration.Definition.json"
+        if(Test-Path -Path $EnvironmentTablesDefinitionPath) {
+          Write-Output $EnvironmentTablesDefinitionPath
+          $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Sentinel/Azure.Sentinel.Integration.Deployment.ps1 -ResourceGroupName $(ResourceGroupName) -WorkspaceName $(ResourceName) -AutomationAccount $(AutomationAccountName) -Path "$(System.DefaultWorkingDirectory)/Framework/Src/Dev/Sentinel/Automation.DataExportRules" -EnvironmentTablesPath $EnvironmentTablesDefinitionPath
+        }
+        else{
+          Write-Warning "Environment Definition for Sentinel Tables not Found"
+        }
+      }
+      catch {
+        Write-Host "##vso[task.logissue type=warning;result=SucceededWithIssues]$_"
+      }
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Framework'

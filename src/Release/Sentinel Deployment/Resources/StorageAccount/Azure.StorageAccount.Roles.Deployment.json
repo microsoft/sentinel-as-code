@@ -1,0 +1,55 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "Name": {
+            "type": "string"
+        },
+        "automationAccountSystemIdentity": {
+            "type": "string"
+        },
+        "sentinelUserIdentity": {
+            "type": "string"
+        },
+        "storageaccountSystemRoleAssignmentId": {
+            "type": "string",
+            "defaultValue": "[newGuid()]"
+        },
+        "storageaccountUserRoleAssignmentId": {
+            "type": "string",
+            "defaultValue": "[newGuid()]"
+        }
+    },
+    "variables": {
+        "storageBlobDataOwnerDefinitionId" : "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[parameters('storageaccountSystemRoleAssignmentId')]",
+            "scope": "[concat('microsoft.storage/storageaccounts/', parameters('Name'))]",
+            "properties": {
+                "roleDefinitionId": "[variables('storageBlobDataOwnerDefinitionId')]",
+                "principalId": "[reference(resourceId('Microsoft.Automation/automationAccounts', parameters('automationAccountSystemIdentity')), '2020-01-13-preview', 'Full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[parameters('storageaccountUserRoleAssignmentId')]",
+            "scope": "[concat('microsoft.storage/storageaccounts/', parameters('Name'))]",
+            "properties": {
+                "roleDefinitionId": "[variables('storageBlobDataOwnerDefinitionId')]",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('sentinelUserIdentity')), '2018-11-30').principalId]",
+                "principalType": "ServicePrincipal"
+            }
+        }
+    ],
+    "outputs": {}
+}
