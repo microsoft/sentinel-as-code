@@ -1,0 +1,99 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "lawName": {
+        "type": "string",
+        "metadata": {
+            "description": "Workspace name"
+        }
+      },
+       "location": {
+        "type": "string",
+        "defaultValue": "[resourceGroup().location]",
+        "metadata": {
+          "description": "Specifies the location in which to create the Automation account."
+        }
+      },
+      "name": {
+        "type": "string",
+        "metadata": {
+          "description": "Automation account name"
+        }
+      },
+      "sentinel": {
+        "type": "string"
+      },
+      "keyvault": {
+          "type": "string"
+      },
+      "sentinelRoleAssignmentId": {
+          "type": "string",
+          "defaultValue": "[newGuid()]"
+      },
+      "keyvaultRoleAssignmentId": {
+          "type": "string",
+          "defaultValue": "[newGuid()]"
+      }
+    },
+    "variables": {
+      "contributorRoleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+      "keyVaultReaderDefinitionId" : "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '21090545-7ca7-4776-b22c-e363652d74d2')]"
+    },
+    "resources": [
+        {
+        "type": "Microsoft.Automation/automationAccounts",
+        "apiVersion": "2020-01-13-preview",
+        "name": "[parameters('name')]",
+        "location": "[parameters('location')]",
+        "identity": {
+            "type": "SystemAssigned"            
+        },
+        "properties": {
+          "sku": {
+            "name": "Basic"
+          }
+        }
+      },
+      {
+        "type": "Microsoft.OperationalInsights/workspaces/linkedServices",
+        "apiVersion": "2020-08-01",
+        "name": "[concat(parameters('lawName'), '/', 'Automation')]",
+        "location": "[parameters('location')]",
+        "dependsOn": [
+          "[parameters('name')]"
+        ],
+        "properties": {
+          "resourceId": "[resourceId('Microsoft.Automation/automationAccounts', parameters('name'))]"
+        }
+      },
+      {
+        "type": "Microsoft.Authorization/roleAssignments",
+        "apiVersion": "2018-09-01-preview",
+        "name": "[parameters('sentinelRoleAssignmentId')]",
+        "scope": "[concat('microsoft.operationalinsights/workspaces/', parameters('sentinel'))]",
+        "dependsOn": [
+          "[parameters('name')]"
+        ],
+        "properties": {
+            "roleDefinitionId": "[variables('contributorRoleDefinitionId')]",
+            "principalId": "[reference(resourceId('Microsoft.Automation/automationAccounts', parameters('name')), '2020-01-13-preview', 'Full').identity.principalId]",
+            "principalType": "ServicePrincipal"
+        }
+      },
+            {
+          "type": "Microsoft.Authorization/roleAssignments",
+          "apiVersion": "2018-09-01-preview",
+          "name": "[parameters('keyvaultRoleAssignmentId')]",
+          "scope": "[concat('microsoft.keyvault/vaults/', parameters('keyvault'))]",
+          "dependsOn": [
+            "[parameters('name')]"
+          ],
+          "properties": {
+              "roleDefinitionId": "[variables('keyVaultReaderDefinitionId')]",
+              "principalId": "[reference(resourceId('Microsoft.Automation/automationAccounts', parameters('name')), '2020-01-13-preview', 'Full').identity.principalId]",
+              "principalType": "ServicePrincipal"
+          }
+      }      
+    ]
+  }

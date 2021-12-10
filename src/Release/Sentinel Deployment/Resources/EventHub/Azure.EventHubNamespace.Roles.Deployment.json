@@ -1,0 +1,32 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "Name": {
+            "type": "string"
+        },
+        "automationAccount": {
+            "type": "string"
+        },
+        "eventHubtRoleAssignmentId": {
+            "type": "string",
+            "defaultValue": "[newGuid()]"
+        }
+    },
+    "variables": {
+        "eventHubDataOwnerDefinitionId" : "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'f526a384-b230-433a-b45c-95f59c4a2dec')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[parameters('eventHubtRoleAssignmentId')]",
+            "scope": "[concat('Microsoft.EventHub/namespaces/', parameters('Name'))]",
+            "properties": {
+                "roleDefinitionId": "[variables('eventHubDataOwnerDefinitionId')]",
+                "principalId": "[reference(resourceId('Microsoft.Automation/automationAccounts', parameters('automationAccount')), '2020-01-13-preview', 'Full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+            }
+        }
+    ]
+}
