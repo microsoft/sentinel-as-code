@@ -43,47 +43,47 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Connectors.Management -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Connectors.Management -Recurse
 - task: PowerShell@2
   displayName: Validate Microsoft Sentinel Rules Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Connectors -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Connectors -Recurse
 - task: PowerShell@2
   displayName: Validate Microsoft Sentinel Playbook Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Playbooks -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Playbooks -Recurse
 
 - task: PowerShell@2
   displayName: Validate Microsoft Sentinel Workbooks Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Workbooks -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Workbooks -Recurse
             
 - task: PowerShell@2
   displayName: Validate Microsoft Sentinel Watchlist Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Watchlist -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Watchlist -Recurse
 
 - task: PowerShell@2
   displayName: Validate Microsoft Sentinel Automation Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Automation -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Automation -Recurse
 
 - task: PowerShell@2
   displayName: Validate Microsoft Sentinel Connectors Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Connectors -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Connectors -Recurse
 
 - task: DotNetCoreCLI@2
   displayName: Restore Nuget KQL Validator
@@ -164,7 +164,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Common/Azure.Deployment.Environment -OutputPath $(Agent.TempDirectory)/Environment.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Deployment.Environment -OutputPath $(Agent.TempDirectory)/Environment.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)' 
 - task: PowerShell@2
@@ -175,7 +175,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Connectors -OutputPath $(Agent.TempDirectory)/Connectors.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Connectors -OutputPath $(Agent.TempDirectory)/Connectors.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)' 
 
@@ -187,7 +187,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Connectors.Management -OutputPath $(Agent.TempDirectory)/Connectors.Management.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Connectors.Management -OutputPath $(Agent.TempDirectory)/Connectors.Management.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)' 
 
@@ -199,7 +199,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Rules -OutputPath $(Agent.TempDirectory)/Rules.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Rules -OutputPath $(Agent.TempDirectory)/Rules.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'    
 - task: PowerShell@2
@@ -210,7 +210,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Playbooks -OutputPath $(Agent.TempDirectory)/Playbooks.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Playbooks -OutputPath $(Agent.TempDirectory)/Playbooks.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'
 - task: PowerShell@2
@@ -221,7 +221,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Workbooks -OutputPath $(Agent.TempDirectory)/Workbooks.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Workbooks -OutputPath $(Agent.TempDirectory)/Workbooks.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'
 - task: PowerShell@2
@@ -232,7 +232,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Watchlist -OutputPath $(Agent.TempDirectory)/Watchlist.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Watchlist -OutputPath $(Agent.TempDirectory)/Watchlist.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'
 - task: PowerShell@2
@@ -243,7 +243,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Automation -OutputPath $(Agent.TempDirectory)/Automation.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Automation -OutputPath $(Agent.TempDirectory)/Automation.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'
 - task: NuGetAuthenticate@0
