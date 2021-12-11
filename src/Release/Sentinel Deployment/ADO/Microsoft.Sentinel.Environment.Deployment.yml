@@ -88,17 +88,8 @@ variables:
   - name: EventhubNamespaceName9IsDefined
 
 
-resources:
-  repositories:
-  - repository: AzureSentinel
-    type: git
-    name: SOC/Artifacts
-    ref: $(Build.SourceBranchName)
-
-
 steps:
 - checkout: self
-- checkout: AzureSentinel
 
 - task: NuGetToolInstaller@1
   displayName: Setup Nuget Tools
