@@ -164,7 +164,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Common/Azure.Deployment.Environment -OutputPath $(Agent.TempDirectory)/Environment.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Deployment.Environment -OutputPath $(Agent.TempDirectory)/Environment.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)' 
 - task: PowerShell@2
