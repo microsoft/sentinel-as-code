@@ -129,15 +129,15 @@ steps:
         $Credentials = $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Nuget.Credentials.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)"
         $AllowPrerelease = [bool]::Parse("${{ parameters.UsePreRelease }}")
         Install-Module -Name "Azure.Deployment.Environment" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
-        Install-Module -Name "Azure.Sentinel.Connectors.Management" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
-        Install-Module -Name "Azure.Sentinel.Connectors" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
-        Install-Module -Name "Azure.Sentinel.Automation" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Microsoft.Sentinel.Connectors.Management" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Microsoft.Sentinel.Connectors" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Microsoft.Sentinel.Automation" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
       }
       finally {
-        (Get-Module -Name Azure.Deployment.Environment -ListAvailable) | ft Name, Version
-        (Get-Module -Name Azure.Sentinel.Connectors.Management -ListAvailable) | ft Name, Version
-        (Get-Module -Name Azure.Sentinel.Connectors -ListAvailable) | ft Name, Version
-        (Get-Module -Name Azure.Sentinel.Automation -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Deployment.Environment -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Connectors.Management -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Connectors -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Automation -ListAvailable) | ft Name, Version
         $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
       }
 
