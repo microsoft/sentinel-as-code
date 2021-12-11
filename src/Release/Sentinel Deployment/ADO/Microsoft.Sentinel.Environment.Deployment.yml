@@ -124,9 +124,9 @@ steps:
     pwsh: true
     script: |
       nuget.exe sources add -Name NugetFramework -Source $(FEED_URL) -Username "PAT" -Password $(VSS_NUGET_ACCESSTOKEN) 
-      $(Build.SourcesDirectory)/Framework/Src/Build/Powershell.Nuget.Connect.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Location $(FEED_URL) -Name NugetFramework
+      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Nuget.Connect.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Location $(FEED_URL) -Name NugetFramework
       try {
-        $Credentials = $(Build.SourcesDirectory)/Framework/Src/Build/Powershell.Nuget.Credentials.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)"
+        $Credentials = $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Nuget.Credentials.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)"
         $AllowPrerelease = [bool]::Parse("${{ parameters.UsePreRelease }}")
         Install-Module -Name "Azure.Deployment.Environment" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
         Install-Module -Name "Azure.Sentinel.Connectors.Management" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
@@ -138,7 +138,7 @@ steps:
         (Get-Module -Name Azure.Sentinel.Connectors.Management -ListAvailable) | ft Name, Version
         (Get-Module -Name Azure.Sentinel.Connectors -ListAvailable) | ft Name, Version
         (Get-Module -Name Azure.Sentinel.Automation -ListAvailable) | ft Name, Version
-        $(Build.SourcesDirectory)/Framework/Src/Build/Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
+        $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
       }
 
 
@@ -236,7 +236,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Sentinel-Deployment'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/Sentinel/LogAnalyticsAndSentinel.template.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/Sentinel/LogAnalyticsAndSentinel.template.json'
     overrideParameters: -workspaceName $(ResourceName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'    
@@ -250,7 +250,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Sentinel-Deployment'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/Sentinel/Sentinel.template.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/Sentinel/Sentinel.template.json'
     overrideParameters: -workspaceName $(ResourceName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -264,7 +264,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Sentinel-Key-Vault-Deployment'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/KeyVault/Azure.KeyVault.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/KeyVault/Azure.KeyVault.Deployment.json'
     overrideParameters: -name $(KeyVaultName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -278,7 +278,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Sentinel-Managed-Identity-Deployment'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/Sentinel/Managed.Identity.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/Sentinel/Managed.Identity.json'
     overrideParameters: -name $(ManagedIdentityName) -sentinel $(ResourceName) -automation $(AutomationAccountName) -storageaccount $(StorageAccountName) -keyvault $(KeyVaultName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -292,7 +292,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Sentinel-Managed-Identity-Deployment'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/Automation/Azure.Automation.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/Automation/Azure.Automation.json'
     overrideParameters: -name $(AutomationAccountName) -lawName $(ResourceName) -sentinel $(ResourceName) -keyvault $(KeyVaultName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -306,7 +306,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Sentinel-Managed-Identity-Deployment'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/Automation/Azure.Automation.Roles.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/Automation/Azure.Automation.Roles.Deployment.json'
     overrideParameters: -Name $(AutomationAccountName) -sentinelUserIdentity $(ManagedIdentityName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -320,7 +320,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Sentinel-Logic-App-Connection-Deployment'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/Sentinel/Azure.Sentinel.LogicApp.Connection.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/Sentinel/Azure.Sentinel.LogicApp.Connection.json'
     overrideParameters: -name $(SentinelConnectionName) 
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -334,7 +334,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Automation-Logic-App-Connection-Deployment'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/Automation/Azure.Automation.LogicApp.Connection.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/Automation/Azure.Automation.LogicApp.Connection.json'
     overrideParameters: -name $(AutomationConnectionName) 
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -348,7 +348,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Automation-Logic-App-Connection-Deployment'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/KeyVault/Azure.KeyVault.LogicApp.Connection.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/KeyVault/Azure.KeyVault.LogicApp.Connection.json'
     overrideParameters: -name $(KeyVaultConnectionName) -keyvault $(KeyVaultName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -362,7 +362,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Sentinel-Storage-Account-Deployment'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/StorageAccount/Azure.StorageAccout.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/StorageAccount/Azure.StorageAccout.Deployment.json'
     overrideParameters: -name $(StorageAccountName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -377,7 +377,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Sentinel-Storage-Account-Deployment'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/StorageAccount/Azure.StorageAccount.Roles.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/StorageAccount/Azure.StorageAccount.Roles.Deployment.json'
     overrideParameters: -name $(StorageAccountName) -automationAccountSystemIdentity $(AutomationAccountName) -sentinelUserIdentity $(ManagedIdentityName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -392,7 +392,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-$(EventhubNamespaceName0)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
     overrideParameters: -name $(EventhubNamespaceName0) 
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -407,7 +407,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName0)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
     overrideParameters: -Name $(EventhubNamespaceName0) -automationAccount $(AutomationAccountName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -422,7 +422,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-$(EventhubNamespaceName1)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
     overrideParameters: -name $(EventhubNamespaceName1) 
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -437,7 +437,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName1)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
     overrideParameters: -Name $(EventhubNamespaceName1) -automationAccount $(AutomationAccountName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -451,7 +451,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-$(EventhubNamespaceName2)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
     overrideParameters: -name $(EventhubNamespaceName2) 
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -465,7 +465,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName2)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
     overrideParameters: -Name $(EventhubNamespaceName2) -automationAccount $(AutomationAccountName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -479,7 +479,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-$(EventhubNamespaceName3)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
     overrideParameters: -name $(EventhubNamespaceName3) 
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -494,7 +494,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName3)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
     overrideParameters: -Name $(EventhubNamespaceName3) -automationAccount $(AutomationAccountName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -509,7 +509,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-$(EventhubNamespaceName4)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
     overrideParameters: -name $(EventhubNamespaceName4) 
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -524,7 +524,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName4)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
     overrideParameters: -Name $(EventhubNamespaceName4) -automationAccount $(AutomationAccountName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -539,7 +539,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-$(EventhubNamespaceName5)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
     overrideParameters: -name $(EventhubNamespaceName5) 
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -554,7 +554,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName5)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
     overrideParameters: -Name $(EventhubNamespaceName5) -automationAccount $(AutomationAccountName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -569,7 +569,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-$(EventhubNamespaceName6)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
     overrideParameters: -name $(EventhubNamespaceName6) 
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -584,7 +584,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName6)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
     overrideParameters: -Name $(EventhubNamespaceName6) -automationAccount $(AutomationAccountName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -599,7 +599,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-$(EventhubNamespaceName7)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
     overrideParameters: -name $(EventhubNamespaceName7) 
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -614,7 +614,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName7)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
     overrideParameters: -Name $(EventhubNamespaceName7) -automationAccount $(AutomationAccountName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -628,7 +628,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-$(EventhubNamespaceName8)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
     overrideParameters: -name $(EventhubNamespaceName8) 
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -643,7 +643,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName8)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
     overrideParameters: -Name $(EventhubNamespaceName8) -automationAccount $(AutomationAccountName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -658,7 +658,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-$(EventhubNamespaceName9)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Deployment.json'
     overrideParameters: -name $(EventhubNamespaceName9) 
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
@@ -673,7 +673,7 @@ steps:
     resourceGroupName: $(ResourceGroupName)
     location: '$(Location)'
     deploymentName: 'Hub-Deployment-Roles-$(EventhubNamespaceName9)'
-    csmFile: '$(Build.SourcesDirectory)/Framework/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
+    csmFile: '$(Build.SourcesDirectory)/Src/Release/Sentinel Deployment/Resources/EventHub/Azure.EventHubNamespace.Roles.Deployment.json'
     overrideParameters: -Name $(EventhubNamespaceName9) -automationAccount $(AutomationAccountName)
     templateLocation: 'Linked artifact'
     deploymentMode: 'Incremental'
