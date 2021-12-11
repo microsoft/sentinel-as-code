@@ -137,6 +137,7 @@ steps:
         (Get-Module -Name Azure.Deployment.Environment -ListAvailable) | ft Name, Version
         (Get-Module -Name Microsoft.Sentinel.Connectors.Management -ListAvailable) | ft Name, Version
         (Get-Module -Name Microsoft.Sentinel.Connectors -ListAvailable) | ft Name, Version
+        Get-Command -Module Microsoft.Sentinel.Connectors
         (Get-Module -Name Microsoft.Sentinel.Automation -ListAvailable) | ft Name, Version
         $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
       }
@@ -687,7 +688,6 @@ steps:
     Inline: |
       try {
         Write-Host "Working over Connectors"
-        Get-Command -Module Microsoft.Sentinel.Connectors
         $SelectedAction = "${{ parameters.Action }}"
         Write-Host "`tAction Selected: $($SelectedAction)"
         $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path
