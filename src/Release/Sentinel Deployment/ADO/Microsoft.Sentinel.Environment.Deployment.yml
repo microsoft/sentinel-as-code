@@ -134,7 +134,7 @@ steps:
         Install-Module -Name "Microsoft.Sentinel.Automation" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
       }
       finally {
-        (Get-Module -Name Microsoft.Deployment.Environment -ListAvailable) | ft Name, Version
+        (Get-Module -Name Azure.Deployment.Environment -ListAvailable) | ft Name, Version
         (Get-Module -Name Microsoft.Sentinel.Connectors.Management -ListAvailable) | ft Name, Version
         (Get-Module -Name Microsoft.Sentinel.Connectors -ListAvailable) | ft Name, Version
         (Get-Module -Name Microsoft.Sentinel.Automation -ListAvailable) | ft Name, Version
