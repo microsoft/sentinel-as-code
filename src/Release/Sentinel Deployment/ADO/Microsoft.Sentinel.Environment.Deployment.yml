@@ -709,7 +709,7 @@ steps:
     Inline: |
       try {
         $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path
-        "$(System.DefaultWorkingDirectory)/Src/Release/Sentinel Deployment/Scripts/Azure.Sentinel.Playbooks.Connections.Deployment.ps1" -ResourceGroupName $(ResourceGroupName) -Path $EnvironmentDirectory
+        & '$(System.DefaultWorkingDirectory)/Src/Release/Sentinel Deployment/Scripts/Azure.Sentinel.Playbooks.Connections.Deployment.ps1' -ResourceGroupName $(ResourceGroupName) -Path $EnvironmentDirectory
       }
       catch {
         Write-Host "##vso[task.logissue type=warning;result=SucceededWithIssues]$_"
