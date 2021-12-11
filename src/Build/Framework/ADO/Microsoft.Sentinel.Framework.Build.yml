@@ -43,47 +43,47 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Connectors.Management -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Connectors.Management -Recurse
 - task: PowerShell@2
   displayName: Validate Microsoft Sentinel Rules Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Connectors -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Connectors -Recurse
 - task: PowerShell@2
   displayName: Validate Microsoft Sentinel Playbook Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Playbooks -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Playbooks -Recurse
 
 - task: PowerShell@2
   displayName: Validate Microsoft Sentinel Workbooks Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Workbooks -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Workbooks -Recurse
             
 - task: PowerShell@2
   displayName: Validate Microsoft Sentinel Watchlist Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Watchlist -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Watchlist -Recurse
 
 - task: PowerShell@2
   displayName: Validate Microsoft Sentinel Automation Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Automation -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Automation -Recurse
 
 - task: PowerShell@2
   displayName: Validate Microsoft Sentinel Connectors Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Connectors -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Connectors -Recurse
 
 - task: DotNetCoreCLI@2
   displayName: Restore Nuget KQL Validator
