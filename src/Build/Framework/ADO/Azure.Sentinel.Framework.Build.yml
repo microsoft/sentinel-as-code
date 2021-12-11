@@ -36,60 +36,60 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Common/Azure.Deployment.Environment -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Deployment.Environment -Recurse
 
 - task: PowerShell@2
   displayName: Validate Azure Sentinel Connectors Management Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Connectors.Management -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Connectors.Management -Recurse
 - task: PowerShell@2
   displayName: Validate Azure Sentinel Rules Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Connectors -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Connectors -Recurse
 - task: PowerShell@2
   displayName: Validate Azure Sentinel Playbook Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Playbooks -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Playbooks -Recurse
 
 - task: PowerShell@2
   displayName: Validate Azure Sentinel Workbooks Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Workbooks -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Workbooks -Recurse
             
 - task: PowerShell@2
   displayName: Validate Azure Sentinel Watchlist Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Watchlist -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Watchlist -Recurse
 
 - task: PowerShell@2
   displayName: Validate Azure Sentinel Automation Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Automation -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Automation -Recurse
 
 - task: PowerShell@2
   displayName: Validate Azure Sentinel Connectors Artifacts
   inputs:
     targetType: 'inline'
     script: |
-            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Connectors -Recurse
+            Invoke-ScriptAnalyzer -Path  $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Connectors -Recurse
 
 - task: DotNetCoreCLI@2
   displayName: Restore Nuget KQL Validator
   inputs:
     command: 'restore'
-    projects: '$(Build.SourcesDirectory)/Src/Dev/Sentinel/Kql/Azure.Kql.Powershell/Azure.Kql.Powershell.sln'
+    projects: '$(Build.SourcesDirectory)/Src/Dev/Framework/Kql/Azure.Kql.Powershell/Azure.Kql.Powershell.sln'
     feedsToUse: 'select'
     verbosityRestore: 'Minimal'
 
@@ -98,7 +98,7 @@ steps:
   inputs:
     command: 'build'
     arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/Kql/Output'
-    projects: '$(Build.SourcesDirectory)/Src/Dev/Sentinel/Kql/Azure.Kql.Powershell/Azure.Kql.Powershell.sln'
+    projects: '$(Build.SourcesDirectory)/Src/Dev/Framework/Kql/Azure.Kql.Powershell/Azure.Kql.Powershell.sln'
     workingDirectory: '$(Build.SourcesDirectory)'
 
 - task: DotNetCoreCLI@2
@@ -106,7 +106,7 @@ steps:
   inputs:
     command: 'test'
     publishTestResults: true
-    projects: '$(Build.SourcesDirectory)/Src/Dev/Sentinel/Kql/Azure.Kql.Powershell/Azure.Kql.Powershell.sln'
+    projects: '$(Build.SourcesDirectory)/Src/Dev/Framework/Kql/Azure.Kql.Powershell/Azure.Kql.Powershell.sln'
     testRunTitle: 'KQL Unit Tests'
     workingDirectory: '$(Build.SourcesDirectory)'
 
@@ -115,7 +115,7 @@ steps:
   inputs:
     command: 'publish'
     publishWebProjects: false
-    projects: '$(Build.SourcesDirectory)/Src/Dev/Sentinel/Kql/Azure.Kql.Powershell/Azure.Kql.Powershell.sln'
+    projects: '$(Build.SourcesDirectory)/Src/Dev/Framework/Kql/Azure.Kql.Powershell/Azure.Kql.Powershell.sln'
     arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/Kql'
     zipAfterPublish: false
     modifyOutputPath: false
@@ -129,7 +129,7 @@ steps:
       Kusto.Language.dll
       Azure.Kql.Powershell.dll
       System.Management.Automation.dll
-    TargetFolder: '$(Build.SourcesDirectory)/Src/Dev/Sentinel/Kql/Azure.Kql.Powershell/Module/Azure.Kql.Powershell/Version/Azure.Kql.Powershell'
+    TargetFolder: '$(Build.SourcesDirectory)/Src/Dev/Framework/Kql/Azure.Kql.Powershell/Module/Azure.Kql.Powershell/Version/Azure.Kql.Powershell'
 
 - task: PowerShell@2
   displayName: "Artifacts Version"
@@ -152,7 +152,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Sentinel/Kql/Azure.Kql.Powershell/Module/Azure.Kql.Powershell -OutputPath $(Agent.TempDirectory)/KQL.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Kql/Azure.Kql.Powershell/Module/Azure.Kql.Powershell -OutputPath $(Agent.TempDirectory)/KQL.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)' 
 
@@ -175,7 +175,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Connectors -OutputPath $(Agent.TempDirectory)/Connectors.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Connectors -OutputPath $(Agent.TempDirectory)/Connectors.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)' 
 
@@ -187,7 +187,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Connectors.Management -OutputPath $(Agent.TempDirectory)/Connectors.Management.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Connectors.Management -OutputPath $(Agent.TempDirectory)/Connectors.Management.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)' 
 
@@ -199,7 +199,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Rules -OutputPath $(Agent.TempDirectory)/Rules.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Rules -OutputPath $(Agent.TempDirectory)/Rules.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'    
 - task: PowerShell@2
@@ -210,7 +210,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Playbooks -OutputPath $(Agent.TempDirectory)/Playbooks.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Playbooks -OutputPath $(Agent.TempDirectory)/Playbooks.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'
 - task: PowerShell@2
@@ -221,7 +221,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Workbooks -OutputPath $(Agent.TempDirectory)/Workbooks.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Workbooks -OutputPath $(Agent.TempDirectory)/Workbooks.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'
 - task: PowerShell@2
@@ -232,7 +232,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Watchlist -OutputPath $(Agent.TempDirectory)/Watchlist.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Watchlist -OutputPath $(Agent.TempDirectory)/Watchlist.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'
 - task: PowerShell@2
@@ -243,7 +243,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Sentinel/Azure.Sentinel.Automation -OutputPath $(Agent.TempDirectory)/Automation.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Azure.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Azure.Sentinel.Automation -OutputPath $(Agent.TempDirectory)/Automation.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'
 - task: NuGetAuthenticate@0
