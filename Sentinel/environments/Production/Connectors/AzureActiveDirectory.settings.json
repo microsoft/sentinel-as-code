@@ -1,0 +1,11 @@
+{
+    "SignInLogs": true,
+    "AuditLogs": true,
+    "NonInteractiveUserSignInLogs": true,
+    "ServicePrincipalSignInLogs": true,
+    "ManagedIdentitySignInLogs": true,
+    "ProvisioningLogs": true,
+    "KeyVault": "socdapweprodsentinelakv",
+    "SecretName": "ImpersonationCredentials",
+    "ImpersonationEnabled": true 
+}

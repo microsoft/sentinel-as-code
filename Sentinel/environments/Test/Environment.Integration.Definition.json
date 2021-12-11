@@ -1,0 +1,42 @@
+[
+    {
+        "Container": {
+            "ResourceGroupName" : "soc-wecontososiem-rg", 
+            "Name" : "soc-wecontososiem-eh001",
+            "Kind" : "EventHub",
+            "Tables":  [
+                "AzureActivity",
+                "DeviceLogonEvents",
+                "SecurityIncident"
+            ],
+            "Capture" : {
+                "StorageAccountResourceId" : "/subscriptions/d75695ac-29e2-4d42-b940-d5281eb6bd08/resourceGroups/soc-wecontososiem-rg/providers/Microsoft.Storage/storageAccounts/socwecontososiemsta" 
+            }
+        }
+    },
+    {
+        "Container": {
+            "ResourceGroupName" : "soc-wecontososiem-rg", 
+            "Name" : "soc-wecontososiem-eh002",
+            "Kind" : "EventHub",
+            "Tables":  [
+                "HuntingBookmark",
+                "AppServicePlatformLogs"
+            ],
+            "Capture" : {
+                "StorageAccountResourceId" : "/subscriptions/d75695ac-29e2-4d42-b940-d5281eb6bd08/resourceGroups/soc-wecontososiem-rg/providers/Microsoft.Storage/storageAccounts/socwecontososiemsta" 
+            }
+        }
+    },
+    {
+        "Container": {
+            "ResourceGroupName" : "soc-wecontososiem-rg", 
+            "Name" : "socwecontososiemsta",
+            "Kind" : "StorageAccount",
+            "Tables":  [
+                "HuntingBookmark",
+                "AppServicePlatformLogs"
+            ]
+        }
+    }
+]

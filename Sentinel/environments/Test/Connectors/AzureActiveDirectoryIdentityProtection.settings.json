@@ -1,0 +1,6 @@
+{
+    "Alerts": "Enabled",
+    "KeyVault": "managementakv",
+    "SecretName": "Credential",
+    "ImpersonationEnabled": true 
+}

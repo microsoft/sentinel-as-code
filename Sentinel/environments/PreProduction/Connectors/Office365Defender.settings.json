@@ -1,0 +1,7 @@
+{
+    "Alerts": "Enabled",
+    "KeyVault": "socdap-test-sentinel-kv",
+    "SecretName": "ImpersonationCredentials",
+    "ImpersonationEnabled": true 
+}
+

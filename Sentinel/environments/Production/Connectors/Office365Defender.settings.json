@@ -1,0 +1,7 @@
+{
+    "Alerts": "Enabled",
+    "KeyVault": "socdapweprodsentinelakv",
+    "SecretName": "ImpersonationCredentials",
+    "ImpersonationEnabled": true 
+}
+

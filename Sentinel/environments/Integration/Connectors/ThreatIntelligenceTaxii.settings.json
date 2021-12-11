@@ -1,0 +1,11 @@
+{
+    "TaxiiClient": "Enabled",
+    "TaxiiServer" :  "https://contoso-dev.threatconnect.com/api/services/taxii2/v1/tc_taxii",
+    "CollectionId":  "9db1b55a-d303-5d82-b285-277712f5b03c",
+    "PoolingFrequency": "OnePerHour",
+    "FriendlyName": "Taxii",
+    "KeyVault": "socdap-test-sentinel-kv",
+    "SecretName": "ThreatConnectTaxi",
+    "ImpersonationEnabled": true 
+}
+

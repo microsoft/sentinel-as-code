@@ -1,0 +1,9 @@
+{
+    "Sharepoint": "Enabled",
+    "Exchange" :  "Enabled",
+    "Teams":  "Enabled",
+    "KeyVault": "managementakv",
+    "SecretName": "Credential",
+    "ImpersonationEnabled": true 
+}
+

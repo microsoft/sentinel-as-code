@@ -1,0 +1,19 @@
+[
+    {
+        "Container": {
+            "ResourceGroupName" : "socdap-wepreprodsiem-rg", 
+            "Name" : "socdap-wepreprodsiem-eh001",
+            "Kind" : "EventHub",
+            "Tables":  [
+                "OfficeActivity",
+                "SecurityAlert",
+                "SecurityIncident",
+                "SigninLogs",
+                "AuditLogs"
+            ],
+            "Capture" : {
+                "StorageAccountResourceId" : "/subscriptions/9e69aea0-07b2-41b4-8925-db3dd01c7c4f/resourceGroups/socdap-wepreprodsiem-rg/providers/Microsoft.Storage/storageAccounts/socdapwepreprodsiemsta" 
+            }
+        }
+    }
+]
