@@ -136,7 +136,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      Import-Module -Name $(System.DefaultWorkingDirectory)/Src/Deploy/Common/Azure.DevOps.Extensions.psm1
+      Import-Module -Name $(System.DefaultWorkingDirectory)/Src/Release/Common/Azure.DevOps.Extensions.psm1
       Set-AzureDevOpsVariable major = "$(major)".Padleft(4, "0")
       Set-AzureDevOpsVariable minor = "$(minor)".Padleft(2, "0")
       Set-AzureDevOpsVariable build = "$(build)".Padleft(2, "0")
