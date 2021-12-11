@@ -152,7 +152,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Kql/Azure.Kql.Powershell/Module/Azure.Kql.Powershell -OutputPath $(Agent.TempDirectory)/KQL.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Kql/Azure.Kql.Powershell/Module/Azure.Kql.Powershell -OutputPath $(Agent.TempDirectory)/KQL.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)' 
 
@@ -164,7 +164,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Common/Azure.Deployment.Environment -OutputPath $(Agent.TempDirectory)/Environment.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Common/Azure.Deployment.Environment -OutputPath $(Agent.TempDirectory)/Environment.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)' 
 - task: PowerShell@2
@@ -175,7 +175,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Connectors -OutputPath $(Agent.TempDirectory)/Connectors.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Connectors -OutputPath $(Agent.TempDirectory)/Connectors.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)' 
 
@@ -187,7 +187,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Connectors.Management -OutputPath $(Agent.TempDirectory)/Connectors.Management.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Connectors.Management -OutputPath $(Agent.TempDirectory)/Connectors.Management.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)' 
 
@@ -199,7 +199,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Rules -OutputPath $(Agent.TempDirectory)/Rules.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Rules -OutputPath $(Agent.TempDirectory)/Rules.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'    
 - task: PowerShell@2
@@ -210,7 +210,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Playbooks -OutputPath $(Agent.TempDirectory)/Playbooks.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Playbooks -OutputPath $(Agent.TempDirectory)/Playbooks.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'
 - task: PowerShell@2
@@ -221,7 +221,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Workbooks -OutputPath $(Agent.TempDirectory)/Workbooks.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Workbooks -OutputPath $(Agent.TempDirectory)/Workbooks.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'
 - task: PowerShell@2
@@ -232,7 +232,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Watchlist -OutputPath $(Agent.TempDirectory)/Watchlist.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Watchlist -OutputPath $(Agent.TempDirectory)/Watchlist.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'
 - task: PowerShell@2
@@ -243,7 +243,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master"
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Automation -OutputPath $(Agent.TempDirectory)/Automation.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Build.ps1 -Path $(Build.SourcesDirectory)/Src/Dev/Framework/Microsoft.Sentinel.Automation -OutputPath $(Agent.TempDirectory)/Automation.Output -MajorVersion $(major) -MinorVersion $(minor) -Build $(build)$(rev) -PreRelease:$PreRelease
     pwsh: true
     workingDirectory: '$(Build.SourcesDirectory)'
 - task: NuGetAuthenticate@0
@@ -266,7 +266,7 @@ steps:
     targetType: 'inline'
     script: |
       nuget.exe sources add -Name FrameworkCatalog -Source $(FEED_URL) -Username "PAT" -Password $(VSS_NUGET_ACCESSTOKEN) 
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Nuget.Connect.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Location $(FEED_URL) -Name FrameworkCatalog
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Nuget.Connect.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Location $(FEED_URL) -Name FrameworkCatalog
 - task: PowerShell@2
   displayName: Publish Nuget Kql Package
   inputs:
@@ -274,7 +274,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/KQL.Output" -PreRelease:$MasterBranch
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/KQL.Output" -PreRelease:$MasterBranch
 
 - task: PowerShell@2
   displayName: Publish Nuget Azure Deployment Environment Package
@@ -283,7 +283,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Environment.Output" -PreRelease:$MasterBranch
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Environment.Output" -PreRelease:$MasterBranch
 
 - task: PowerShell@2
   displayName: Publish Nuget Microsoft Sentinel Connectors Management Package
@@ -292,7 +292,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Connectors.Management.Output" -PreRelease:$MasterBranch
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Connectors.Management.Output" -PreRelease:$MasterBranch
 - task: PowerShell@2
   displayName: Publish Nuget Microsoft Sentinel Connectors Package
   inputs:
@@ -300,7 +300,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Connectors.Output" -PreRelease:$MasterBranch
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Connectors.Output" -PreRelease:$MasterBranch
 - task: PowerShell@2
   displayName: Publish Nuget Microsoft Sentinel Rules Package
   inputs:
@@ -308,7 +308,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Rules.Output" -PreRelease:$MasterBranch
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Rules.Output" -PreRelease:$MasterBranch
 - task: PowerShell@2
   displayName: Publish Nuget Microsoft Sentinel Playbooks Package
   inputs:
@@ -316,7 +316,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Playbooks.Output" -PreRelease:$MasterBranch
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Playbooks.Output" -PreRelease:$MasterBranch
 - task: PowerShell@2
   displayName: Publish Nuget Microsoft Sentinel Watchlist Package
   inputs:
@@ -324,7 +324,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Watchlist.Output" -PreRelease:$MasterBranch
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Watchlist.Output" -PreRelease:$MasterBranch
 - task: PowerShell@2
   displayName: Publish Nuget Microsoft Sentinel Workbooks Package
   inputs:
@@ -332,7 +332,7 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Workbooks.Output" -PreRelease:$MasterBranch
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Workbooks.Output" -PreRelease:$MasterBranch
 
 - task: PowerShell@2
   displayName: Publish Nuget Microsoft Sentinel Automation Package
@@ -341,12 +341,12 @@ steps:
     script: |
       $Branch = "$(Build.SourceBranch)" | Split-Path -Leaf
       $PreRelase = $Branch -ne "master" 
-      $(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Automation.Output" -PreRelease:$MasterBranch
+      $(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Modules.Release.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Name FrameworkCatalog -Path "$(Agent.TempDirectory)/Automation.Output" -PreRelease:$MasterBranch
 
 - task: PowerShell@2
   displayName: Disconnect Neste Artifact Feed
   name: DisconnectArtifactFeed
   inputs:
-    filePath: '$(Build.SourcesDirectory)/Src/Build/Microsoft.Sentinel.Powershell.Nuget.Disconnect.ps1'
+    filePath: '$(Build.SourcesDirectory)/Src/Build/Framework/Microsoft.Sentinel.Powershell.Nuget.Disconnect.ps1'
     arguments: '-Name FrameworkCatalog'
 
