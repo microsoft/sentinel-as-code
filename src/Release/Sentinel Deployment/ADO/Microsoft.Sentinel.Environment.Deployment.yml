@@ -687,6 +687,7 @@ steps:
     Inline: |
       try {
         Write-Host "Working over Connectors"
+        Get-Command -Module Microsoft.Sentinel.Connectors
         $SelectedAction = "${{ parameters.Action }}"
         Write-Host "`tAction Selected: $($SelectedAction)"
         $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path
