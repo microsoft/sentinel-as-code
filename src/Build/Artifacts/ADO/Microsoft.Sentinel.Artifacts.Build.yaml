@@ -69,6 +69,7 @@ steps:
     targetType: 'inline'
     script: |
             Import-Module $(System.ArtifactsDirectory)/Azure-TTK/arm-ttk/arm-ttk.psd1 -Force
+            Get-ChildItem -Path $(System.DefaultWorkingDirectory)
             Get-ChildItem -Path "$(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/*/*/Playbooks/" -Recurse -Filter "*.json" -Exclude "*.parameters.json" | ForEach-Object {
               Write-Host "Analyzing $($_.FullName)"
               Test-AzTemplate $_.FullName
