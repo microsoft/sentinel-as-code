@@ -9,19 +9,8 @@ parameters:
 pool:
   vmImage: 'windows-latest'
 
-resources:
-  pipelines:
-    - pipeline: ttk_build
-      source: "Built Azure Test Template Kit"
-  repositories:
-  - repository: AzureSentinel
-    type: git
-    name: SOC/Artifacts
-    ref: $(Build.SourceBranchName)
-
 steps:
 - checkout: self
-- checkout: AzureSentinel
 
 - task: NuGetToolInstaller@1
   displayName: Setup Nuget Tools
@@ -61,16 +50,28 @@ steps:
       finally {
         $(Build.SourcesDirectory)/src/Build/Framework/Azure.Sentinel.Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
       }
-- task: DownloadBuildArtifacts@0
+# - task: DownloadBuildArtifacts@0
+#   displayName: Download Azure ARM TTK
+#   name: DownloadPackageTTK
+#   inputs:
+#     buildType: 'specific'
+#     project: '$(resources.pipeline.ttk_build.projectID)'
+#     pipeline: '$(resources.pipeline.ttk_build.pipelineID)'
+#     buildVersionToDownload: 'latest'
+#     downloadType: 'specific'
+#     downloadPath: '$(System.ArtifactsDirectory)'
+
+- task: PowerShell@2
   displayName: Download Azure ARM TTK
   name: DownloadPackageTTK
   inputs:
-    buildType: 'specific'
-    project: '$(resources.pipeline.ttk_build.projectID)'
-    pipeline: '$(resources.pipeline.ttk_build.pipelineID)'
-    buildVersionToDownload: 'latest'
-    downloadType: 'specific'
-    downloadPath: '$(System.ArtifactsDirectory)'
+    targetType: 'inline'
+    script: |
+            Invoke-WebRequest -Uri https://aka.ms/arm-ttk-latest -UseBasicParsing -Method Get -OutFile $(System.ArtifactsDirectory)/azure-ttk.zip
+            Expand-Archive -Path $(System.ArtifactsDirectory)/azure-ttk.zip -DestinationPath $(System.ArtifactsDirectory)/Azure-TTK
+            Get-ChildItem -Path $(System.ArtifactsDirectory)/Azure-TTK *.ps1, *.psd1, *.ps1xml, *.psm1 -Recurse | Unblock-File
+    pwsh: true
+    workingDirectory: '$(System.ArtifactsDirectory)'
 
 - task: PowerShell@2
   displayName: Validate ARM Templates
