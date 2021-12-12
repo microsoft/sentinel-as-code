@@ -93,7 +93,7 @@ steps:
     ScriptType: 'InlineScript'
     Inline: |
           Import-Module -Name $(System.DefaultWorkingDirectory)/src/Release/Common/Azure.DevOps.Extensions.psm1
-          $Environment = $(System.DefaultWorkingDirectory)/src/Release/Common/Azure.Environments.ps1 -Path $(System.DefaultWorkingDirectory)/Artifacts/Src/Deploy/Environments
+          $Environment = $(System.DefaultWorkingDirectory)/src/Release/Common/Azure.Environments.ps1 -Path $(System.DefaultWorkingDirectory)/Sentinel/Environments
           $Environment
           Set-AzureDevOpsVariable ResourceGroupName = $Environment.ResourceGroupName
           Set-AzureDevOpsVariable ResourceName = $Environment.LogAnalyticsWorkspaceName
