@@ -51,7 +51,7 @@ steps:
   displayName: Authenticating with Sentinel Nuget
   name: NugetAuthentication
   inputs:
-    nuGetServiceConnections: 'Nuget Framework Connection'
+    nuGetServiceConnections: 'Microsoft Sentinel Nuget Framework Connection'
 
 - task: PowerShell@2
   condition: succeeded()
@@ -77,19 +77,19 @@ steps:
         $Credentials = $(Build.SourcesDirectory)/src/Build/Framework/Azure.Sentinel.Powershell.Nuget.Credentials.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)"
         $AllowPrerelease = [bool]::Parse("${{ parameters.UsePreRelease }}")
         Install-Module -Name "Azure.Deployment.Environment" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
-        Install-Module -Name "Azure.Sentinel.Rules" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
-        Install-Module -Name "Azure.Sentinel.Playbooks" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
-        Install-Module -Name "Azure.Sentinel.Workbooks" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
-        Install-Module -Name "Azure.Sentinel.Watchlist" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
-        Install-Module -Name "Azure.Sentinel.Automation" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Microsoft.Sentinel.Rules" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Microsoft.Sentinel.Playbooks" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Microsoft.Sentinel.Workbooks" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Microsoft.Sentinel.Watchlist" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Microsoft.Sentinel.Automation" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
       }
       finally {
         (Get-Module -Name Azure.Deployment.Environment -ListAvailable) | ft Name, Version
-        (Get-Module -Name Azure.Sentinel.Rules -ListAvailable) | ft Name, Version
-        (Get-Module -Name Azure.Sentinel.Playbooks -ListAvailable) | ft Name, Version
-        (Get-Module -Name Azure.Sentinel.Workbooks -ListAvailable) | ft Name, Version
-        (Get-Module -Name Azure.Sentinel.Watchlist -ListAvailable) | ft Name, Version
-        (Get-Module -Name Azure.Sentinel.Automation -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Rules -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Playbooks -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Workbooks -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Watchlist -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Automation -ListAvailable) | ft Name, Version
         $(Build.SourcesDirectory)/src/Build/Framework/Azure.Sentinel.Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
       }
 
