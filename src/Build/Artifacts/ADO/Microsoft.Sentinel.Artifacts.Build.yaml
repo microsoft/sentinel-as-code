@@ -50,16 +50,6 @@ steps:
       finally {
         $(Build.SourcesDirectory)/src/Build/Framework/Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
       }
-# - task: DownloadBuildArtifacts@0
-#   displayName: Download Azure ARM TTK
-#   name: DownloadPackageTTK
-#   inputs:
-#     buildType: 'specific'
-#     project: '$(resources.pipeline.ttk_build.projectID)'
-#     pipeline: '$(resources.pipeline.ttk_build.pipelineID)'
-#     buildVersionToDownload: 'latest'
-#     downloadType: 'specific'
-#     downloadPath: '$(System.ArtifactsDirectory)'
 
 - task: PowerShell@2
   displayName: Download Azure ARM TTK
@@ -78,6 +68,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
+            Get-ChildItem $(System.ArtifactsDirectory)/Azure-TTK/
             Import-Module $(System.ArtifactsDirectory)/Azure-TTK/arm-ttk.psd1 -Force
             Get-ChildItem -Path "$(System.DefaultWorkingDirectory)/Artifacts/mitre-use-cases/*/*/Playbooks/" -Recurse -Filter "*.json" -Exclude "*.parameters.json" | ForEach-Object {
               Write-Host "Analyzing $($_.FullName)"
