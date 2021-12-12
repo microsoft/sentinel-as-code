@@ -69,7 +69,7 @@ steps:
     targetType: 'inline'
     script: |
             Import-Module $(System.ArtifactsDirectory)/Azure-TTK/arm-ttk/arm-ttk.psd1 -Force
-            Get-ChildItem -Path "$(System.DefaultWorkingDirectory)/Artifacts/mitre-use-cases/*/*/Playbooks/" -Recurse -Filter "*.json" -Exclude "*.parameters.json" | ForEach-Object {
+            Get-ChildItem -Path "$(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/*/*/Playbooks/" -Recurse -Filter "*.json" -Exclude "*.parameters.json" | ForEach-Object {
               Write-Host "Analyzing $($_.FullName)"
               Test-AzTemplate $_.FullName
               Write-Host "Done!"
@@ -82,7 +82,7 @@ steps:
     targetType: 'inline'
     script: |
             Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force
-            Get-ChildItem -Path "$(System.DefaultWorkingDirectory)/Artifacts/mitre-use-cases/*/*/Runbooks/Unit-Tests" -Recurse -Include "*.test.ps1" | ForEach-Object {
+            Get-ChildItem -Path "$(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/*/*/Runbooks/Unit-Tests" -Recurse -Include "*.test.ps1" | ForEach-Object {
               Write-Host "Analyzing $($_.FullName)"
               Invoke-ScriptAnalyzer -Path $_.FullName
               Write-Host "Done!"
@@ -95,7 +95,7 @@ steps:
     targetType: 'inline'
     script: |
             Install-Module Pester -Force -Scope CurrentUser
-            Get-ChildItem -Path "$(System.DefaultWorkingDirectory)/Artifacts/mitre-use-cases/*/*/Runbooks/" -Recurse -Include "*.test.ps1" | ForEach-Object {
+            Get-ChildItem -Path "$(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/*/*/Runbooks/" -Recurse -Include "*.test.ps1" | ForEach-Object {
               Write-Host "Unit Test $($_.FullName)"
               Invoke-Pester $_.FullName -OutputFile $(System.DefaultWorkingDirectory)\Output\Tests\$($_.Name)_TestOutput.XML -OutputFormat NUnitXML
               Write-Host "Done!"
@@ -112,7 +112,7 @@ steps:
             Install-Module -Name powershell-yaml -Scope CurrentUser -Force
             Import-Module -Name Azure.Kql.Powershell
             Write-Host "Validating Yaml Rules"
-            Get-ChildItem -Path "$(System.DefaultWorkingDirectory)/Artifacts/mitre-use-cases/" -Recurse -Include "*.rule.yaml" | ForEach-Object {
+            Get-ChildItem -Path "$(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/" -Recurse -Include "*.rule.yaml" | ForEach-Object {
               try {
                 Write-Host "Analyzing $($_.FullName)"
                 $Rule = Get-Content -Path $_.FullName -Raw | ConvertFrom-Yaml
@@ -127,7 +127,7 @@ steps:
               }
             }
             Write-Host "Validating Json Rules"
-            Get-ChildItem -Path "$(System.DefaultWorkingDirectory)/Artifacts/mitre-use-cases/" -Recurse -Include "*.rule.json" | ForEach-Object {
+            Get-ChildItem -Path "$(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/" -Recurse -Include "*.rule.json" | ForEach-Object {
               try {
                 Write-Host "Analyzing $($_.FullName)"
                 $Rule = Get-Content -Path $_.FullName -Raw | ConvertFrom-Json
@@ -151,7 +151,7 @@ steps:
     script: |
             Write-Host "Extracting MITRE Manifest"
             $OutputPath = Join-Path -Path $(Agent.TempDirectory) -ChildPath "OutputMitreManifest.csv"
-            $(System.DefaultWorkingDirectory)/src/Build/Artifacts/Scripts/Azure.Mitre.Manifest.Generation.ps1 -Path "$(System.DefaultWorkingDirectory)/Artifacts/mitre-use-cases/" -OutputPath $OutputPath -ShowReport
+            $(System.DefaultWorkingDirectory)/src/Build/Artifacts/Scripts/Azure.Mitre.Manifest.Generation.ps1 -Path "$(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/" -OutputPath $OutputPath -ShowReport
     pwsh: true
     workingDirectory: '$(System.ArtifactsDirectory)'
 
