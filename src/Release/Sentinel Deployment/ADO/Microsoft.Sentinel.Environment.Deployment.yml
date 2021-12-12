@@ -138,6 +138,7 @@ steps:
         (Get-Module -Name Microsoft.Sentinel.Connectors.Management -ListAvailable) | ft Name, Version
         (Get-Module -Name Microsoft.Sentinel.Connectors -ListAvailable) | ft Name, Version
         (Get-Module -Name Microsoft.Sentinel.Automation -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Connectors).Path
         $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
       }
 
