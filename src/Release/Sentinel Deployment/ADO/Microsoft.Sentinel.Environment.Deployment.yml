@@ -689,12 +689,12 @@ steps:
         Write-Host "Working over Connectors"
         $SelectedAction = "${{ parameters.Action }}"
         Write-Host "`tAction Selected: $($SelectedAction)"
-        Write-Host '->: $($EnvironmentLocation)'
+        Write-Host $($EnvironmentLocation)
         $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path
-        Write-Host '->: $($EnvironmentDirectory)'
+        Write-Host $($EnvironmentDirectory)
         $ConnectorsSettingsLocation = Join-Path -Path $EnvironmentDirectory -ChildPath "Connectors"
         $ConnectorsLocation = Get-AzSentinelConnectorsLocation
-        Write-Host '->: $($ConnectorsLocation)'
+        Write-Host $($ConnectorsLocation)
         (Get-Module -Name Microsoft.Sentinel.Connectors).Path
         & '$(System.DefaultWorkingDirectory)/Src/Release/Sentinel Deployment/Scripts/Azure.Sentinel.DataConnectors.Runtime.ps1' -ResourceGroupName $(ResourceGroupName) -Workspace $(ResourceName) -Action $SelectedAction -ConnectorsPath $ConnectorsLocation -ConnectorSettingsPath $ConnectorsSettingsLocation
       }
