@@ -107,7 +107,7 @@ steps:
   inputs:
     azureSubscription: '${{ parameters.ServiceConnectionName }}'
     ScriptType: 'FilePath'
-    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Sentinel/Microsoft.Sentinel.Export.ps1'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Export.ps1'
     workingDirectory: $(System.DefaultWorkingDirectory)
     ScriptArguments: '-ResourceGroupName $(ResourceGroupName) -WorkspaceName $(ResourceName) -AutomationAccountName $(AutomationAccountName) -Path $(Agent.TempDirectory)/Export -Format "${{ parameters.Format }}" -ClearBeforeIfExists'
     azurePowerShellVersion: 'LatestVersion'
