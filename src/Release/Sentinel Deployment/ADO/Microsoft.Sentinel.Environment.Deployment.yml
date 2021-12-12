@@ -138,7 +138,6 @@ steps:
         (Get-Module -Name Microsoft.Sentinel.Connectors.Management -ListAvailable) | ft Name, Version
         (Get-Module -Name Microsoft.Sentinel.Connectors -ListAvailable) | ft Name, Version
         (Get-Module -Name Microsoft.Sentinel.Automation -ListAvailable) | ft Name, Version
-        (Get-Module -Name Microsoft.Sentinel.Connectors -ListAvailable).Path
         $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
       }
 
@@ -692,10 +691,7 @@ steps:
         Write-Host "`tAction Selected: $($SelectedAction)"
         $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path -Parent
         $ConnectorsSettingsLocation = Join-Path -Path $EnvironmentDirectory -ChildPath "Connectors"
-        Write-Host $($ConnectorsSettingsLocation)
         $ConnectorsLocation = Get-AzSentinelConnectorsLocation
-        Write-Host $($ConnectorsLocation)
-        (Get-Module -Name Microsoft.Sentinel.Connectors).Path
         & '$(System.DefaultWorkingDirectory)/Src/Release/Sentinel Deployment/Scripts/Azure.Sentinel.DataConnectors.Runtime.ps1' -ResourceGroupName $(ResourceGroupName) -Workspace $(ResourceName) -Action $SelectedAction -ConnectorsPath $ConnectorsLocation -ConnectorSettingsPath $ConnectorsSettingsLocation
       }
       catch {
