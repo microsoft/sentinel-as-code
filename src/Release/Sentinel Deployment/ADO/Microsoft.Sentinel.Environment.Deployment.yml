@@ -689,8 +689,7 @@ steps:
         Write-Host "Working over Connectors"
         $SelectedAction = "${{ parameters.Action }}"
         Write-Host "`tAction Selected: $($SelectedAction)"
-        Write-Host $($EnvironmentLocation)
-        $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path
+        $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path -Leaf
         Write-Host $($EnvironmentDirectory)
         $ConnectorsSettingsLocation = Join-Path -Path $EnvironmentDirectory -ChildPath "Connectors"
         $ConnectorsLocation = Get-AzSentinelConnectorsLocation
