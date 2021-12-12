@@ -69,7 +69,7 @@ steps:
     script: |
             Invoke-WebRequest -Uri https://aka.ms/arm-ttk-latest -UseBasicParsing -Method Get -OutFile $(System.ArtifactsDirectory)/azure-ttk.zip
             Expand-Archive -Path $(System.ArtifactsDirectory)/azure-ttk.zip -DestinationPath $(System.ArtifactsDirectory)/Azure-TTK
-            Get-ChildItem -Path $(System.ArtifactsDirectory)/Azure-TTK *.ps1, *.psd1, *.ps1xml, *.psm1 -Recurse | Unblock-File
+            Get-ChildItem -Path $(System.ArtifactsDirectory)/Azure-TTK -Filter -Include *.ps1,*.psd1,*.ps1xml,*.psm1 -Recurse | Unblock-File
     pwsh: true
     workingDirectory: '$(System.ArtifactsDirectory)'
 
