@@ -142,7 +142,7 @@ steps:
   inputs:
     azureSubscription: '${{ parameters.ServiceConnectionName }}'
     ScriptType: 'FilePath'
-    ScriptPath: '$(System.DefaultWorkingDirectory)/Src/Deploy/Automation/Azure.Automation.Runbooks.Deployment.ps1'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Common/Azure.Automation.Runbooks.Deployment.ps1'
     workingDirectory: $(System.DefaultWorkingDirectory)
     ScriptArguments: '-Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ -SettingsFile $(Agent.TempDirectory)/Settings.json'
     azurePowerShellVersion: 'LatestVersion'
