@@ -690,8 +690,8 @@ steps:
         $SelectedAction = "${{ parameters.Action }}"
         Write-Host "`tAction Selected: $($SelectedAction)"
         $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path -Parent
-        Write-Host $($EnvironmentDirectory)
         $ConnectorsSettingsLocation = Join-Path -Path $EnvironmentDirectory -ChildPath "Connectors"
+        Write-Host $($ConnectorsSettingsLocation)
         $ConnectorsLocation = Get-AzSentinelConnectorsLocation
         Write-Host $($ConnectorsLocation)
         (Get-Module -Name Microsoft.Sentinel.Connectors).Path
