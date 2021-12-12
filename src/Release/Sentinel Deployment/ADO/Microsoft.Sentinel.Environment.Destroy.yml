@@ -24,17 +24,8 @@ variables:
   - name: ResourceGroupName
   - name: ResourceName
   
-resources:
-  repositories:
-  - repository: AzureSentinel
-    type: git
-    name: SOC/Artifacts
-    ref: $(Build.SourceBranchName)
-
-
 steps:
 - checkout: self
-- checkout: AzureSentinel
 
 - task: NuGetToolInstaller@1
   displayName: Setup Nuget Tools
@@ -48,7 +39,7 @@ steps:
   displayName: Authenticating with Sentinel Nuget
   name: NugetAuthentication
   inputs:
-    nuGetServiceConnections: 'Nuget Framework Connection'
+    nuGetServiceConnections: 'Microsoft Sentinel Nuget Framework Connection'
 
 - task: PowerShell@2
   condition: succeeded()
@@ -69,15 +60,15 @@ steps:
     pwsh: true
     script: |
       nuget.exe sources add -Name NugetFramework -Source $(FEED_URL) -Username "PAT" -Password $(VSS_NUGET_ACCESSTOKEN) 
-      $(Build.SourcesDirectory)/Framework/Src/Build/Azure.Sentinel.Powershell.Nuget.Connect.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Location $(FEED_URL) -Name NugetFramework
+      $(Build.SourcesDirectory)/Framework/Src/Build/Powershell.Nuget.Connect.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Location $(FEED_URL) -Name NugetFramework
       try {
-        $Credentials = $(Build.SourcesDirectory)/Framework/Src/Build/Azure.Sentinel.Powershell.Nuget.Credentials.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)"
+        $Credentials = $(Build.SourcesDirectory)/Framework/Src/Build/Powershell.Nuget.Credentials.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)"
         $AllowPrerelease = [bool]::Parse("${{ parameters.UsePreRelease }}")
         Install-Module -Name "Azure.Deployment.Environment" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
       }
       finally {
         (Get-Module -Name Azure.Deployment.Environment -ListAvailable) | ft Name, Version
-        $(Build.SourcesDirectory)/Framework/Src/Build/Azure.Sentinel.Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
+        $(Build.SourcesDirectory)/Framework/Src/Build/Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
       }
 
 - task: AzurePowerShell@5
@@ -88,8 +79,8 @@ steps:
     azureSubscription: '${{ parameters.ServiceConnectionName }}'
     ScriptType: 'InlineScript'
     Inline: |
-      Import-Module -Name $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.DevOps.Extensions.psm1
-      $Environment = $(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Common/Azure.Environments.ps1 -Path $(System.DefaultWorkingDirectory)/Artifacts/Src/Deploy/Environments
+      Import-Module -Name $(System.DefaultWorkingDirectory)/Src/Release/Common/Azure.DevOps.Extensions.psm1
+      $Environment = $(System.DefaultWorkingDirectory)/Src/Release/Common/Azure.Environments.ps1 -Path $(System.DefaultWorkingDirectory)/Sentinel/environments
       $Environment
       Set-AzureDevOpsVariable ResourceGroupName = $Environment.ResourceGroupName
       Set-AzureDevOpsVariable ResourceName = $Environment.LogAnalyticsWorkspaceName
@@ -103,7 +94,7 @@ steps:
     inputs:
       azureSubscription: '${{ parameters.ServiceConnectionName }}'
       ScriptType: 'FilePath'
-      ScriptPath: '$(System.DefaultWorkingDirectory)/Framework/Src/Deploy/Sentinel/Azure.Sentinel.Remove.ps1'
+      ScriptPath: '$(System.DefaultWorkingDirectory)/Src/Release/Sentinel Deployment/Scripts/Microsoft.Sentinel.Remove.ps1'
       ScriptArguments: '-ResourceGroupName $(ResourceGroupName) -WorkspaceName $(ResourceName)'
       azurePowerShellVersion: 'LatestVersion'
       pwsh: true
