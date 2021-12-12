@@ -28,16 +28,8 @@ variables:
   - name: ResourceName
   - name: AutomationAccountName
 
-resources:
-  repositories:
-  - repository: AzureSentinelRules
-    type: git
-    name: SOC/Artifacts
-    ref: $(Build.SourceBranchName)
-
 steps:
 - checkout: self
-- checkout: AzureSentinelRules
 
 - task: NuGetToolInstaller@1
   displayName: Setup Nuget Tools
