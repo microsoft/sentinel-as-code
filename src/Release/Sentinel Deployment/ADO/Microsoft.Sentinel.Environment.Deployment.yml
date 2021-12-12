@@ -692,7 +692,8 @@ steps:
         $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path
         $ConnectorsSettingsLocation = Join-Path -Path $EnvironmentDirectory -ChildPath "Connectors"
         $ConnectorsLocation = Get-AzSentinelConnectorsLocation
-        Write-Host $ConnectorsLocation
+        Write-Host '->: $($ConnectorsLocation)'
+        (Get-Module -Name Microsoft.Sentinel.Connectors).Path
         & '$(System.DefaultWorkingDirectory)/Src/Release/Sentinel Deployment/Scripts/Azure.Sentinel.DataConnectors.Runtime.ps1' -ResourceGroupName $(ResourceGroupName) -Workspace $(ResourceName) -Action $SelectedAction -ConnectorsPath $ConnectorsLocation -ConnectorSettingsPath $ConnectorsSettingsLocation
       }
       catch {
