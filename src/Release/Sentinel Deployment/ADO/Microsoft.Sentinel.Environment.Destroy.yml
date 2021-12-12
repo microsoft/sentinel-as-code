@@ -60,15 +60,15 @@ steps:
     pwsh: true
     script: |
       nuget.exe sources add -Name NugetFramework -Source $(FEED_URL) -Username "PAT" -Password $(VSS_NUGET_ACCESSTOKEN) 
-      $(Build.SourcesDirectory)/Framework/Src/Build/Powershell.Nuget.Connect.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Location $(FEED_URL) -Name NugetFramework
+      $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Nuget.Connect.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Location $(FEED_URL) -Name NugetFramework
       try {
-        $Credentials = $(Build.SourcesDirectory)/Framework/Src/Build/Powershell.Nuget.Credentials.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)"
+        $Credentials = $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Nuget.Credentials.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)"
         $AllowPrerelease = [bool]::Parse("${{ parameters.UsePreRelease }}")
         Install-Module -Name "Azure.Deployment.Environment" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
       }
       finally {
         (Get-Module -Name Azure.Deployment.Environment -ListAvailable) | ft Name, Version
-        $(Build.SourcesDirectory)/Framework/Src/Build/Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
+        $(Build.SourcesDirectory)/Src/Build/Framework/Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
       }
 
 - task: AzurePowerShell@5
