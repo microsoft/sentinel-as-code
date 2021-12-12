@@ -98,7 +98,7 @@ steps:
   inputs:
     azureSubscription: '${{ parameters.ServiceConnectionName }}'
     ScriptType: 'FilePath'
-    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Azure.Sentinel.Watchlist.Deployment.ps1'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Watchlist.Deployment.ps1'
     workingDirectory: $(System.DefaultWorkingDirectory)
     ScriptArguments: '-ResourceGroup $(ResourceGroupName) -Workspace $(ResourceName) -Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ '
     azurePowerShellVersion: 'LatestVersion'
@@ -109,7 +109,7 @@ steps:
   inputs:
     azureSubscription: '${{ parameters.ServiceConnectionName }}'
     ScriptType: 'FilePath'
-    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Azure.Sentinel.Alerts.Rules.Deployment.ps1'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Alerts.Rules.Deployment.ps1'
     workingDirectory: $(System.DefaultWorkingDirectory)
     ScriptArguments: '-ResourceGroup $(ResourceGroupName) -Workspace $(ResourceName) -Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ -Format All'
     azurePowerShellVersion: 'LatestVersion'
@@ -120,7 +120,7 @@ steps:
   inputs:
     azureSubscription: '${{ parameters.ServiceConnectionName }}'
     ScriptType: 'FilePath'
-    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Azure.Sentinel.Hunting.Rules.Deployment.ps1'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Hunting.Rules.Deployment.ps1'
     workingDirectory: $(System.DefaultWorkingDirectory)
     ScriptArguments: '-ResourceGroup $(ResourceGroupName) -Workspace $(ResourceName) -Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ -Format All'
     azurePowerShellVersion: 'LatestVersion'
@@ -153,7 +153,7 @@ steps:
   inputs:
     azureSubscription: '${{ parameters.ServiceConnectionName }}'
     ScriptType: 'FilePath'
-    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Azure.Sentinel.Playbooks.Deployment.ps1'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Playbooks.Deployment.ps1'
     workingDirectory: $(System.DefaultWorkingDirectory)
     ScriptArguments: '-Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ -SettingsFile $(Agent.TempDirectory)/Settings.json'
     azurePowerShellVersion: 'LatestVersion'
@@ -164,7 +164,7 @@ steps:
   inputs:
     azureSubscription: '${{ parameters.ServiceConnectionName }}'
     ScriptType: 'FilePath'
-    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Azure.Sentinel.Automation.Rules.Deployment.ps1'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Automation.Rules.Deployment.ps1'
     workingDirectory: $(System.DefaultWorkingDirectory)
     ScriptArguments: '-ResourceGroup $(ResourceGroupName) -Workspace $(ResourceName) -Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ -SettingsFile $(Agent.TempDirectory)/Settings.json -Format All'
     azurePowerShellVersion: 'LatestVersion'
@@ -175,7 +175,7 @@ steps:
   inputs:
     azureSubscription: '${{ parameters.ServiceConnectionName }}'
     ScriptType: 'FilePath'
-    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Azure.Sentinel.Alerts.RulesPlaybookConnection.Deployment.ps1'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Alerts.RulesPlaybookConnection.Deployment.ps1'
     workingDirectory: $(System.DefaultWorkingDirectory)
     ScriptArguments: '-ResourceGroup $(ResourceGroupName) -Workspace $(ResourceName) -Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ -Format All -SettingsFile $(Agent.TempDirectory)/Settings.json'
     azurePowerShellVersion: 'LatestVersion'
@@ -186,7 +186,7 @@ steps:
   inputs:
     azureSubscription: '${{ parameters.ServiceConnectionName }}'
     ScriptType: 'FilePath'
-    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Azure.Sentinel.Workbooks.Deployment.ps1'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Workbooks.Deployment.ps1'
     workingDirectory: $(System.DefaultWorkingDirectory)
     ScriptArguments: '-ResourceGroup $(ResourceGroupName) -Workspace $(ResourceName) -Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ '
     azurePowerShellVersion: 'LatestVersion'
