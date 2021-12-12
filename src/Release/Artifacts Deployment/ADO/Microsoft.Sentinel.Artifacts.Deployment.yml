@@ -35,7 +35,7 @@ steps:
   displayName: Authenticating with Sentinel Nuget
   name: NugetAuthentication
   inputs:
-    nuGetServiceConnections: 'Nuget Framework Connection'
+    nuGetServiceConnections: 'Microsoft Sentinel Nuget Framework Connection'
 
 - task: PowerShell@2
   condition: succeeded()
