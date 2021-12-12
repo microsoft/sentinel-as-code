@@ -692,7 +692,7 @@ steps:
         $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path -Parent
         $ConnectorsSettingsLocation = Join-Path -Path $EnvironmentDirectory -ChildPath "Connectors"
         $ConnectorsLocation = Get-AzSentinelConnectorsLocation
-        & '$(System.DefaultWorkingDirectory)/Src/Release/Sentinel Deployment/Scripts/Azure.Sentinel.DataConnectors.Runtime.ps1' -ResourceGroupName $(ResourceGroupName) -Workspace $(ResourceName) -Action $SelectedAction -ConnectorsPath $ConnectorsLocation -ConnectorSettingsPath $ConnectorsSettingsLocation
+        & '$(System.DefaultWorkingDirectory)/Src/Release/Sentinel Deployment/Scripts/Microsoft.Sentinel.DataConnectors.Runtime.ps1' -ResourceGroupName $(ResourceGroupName) -Workspace $(ResourceName) -Action $SelectedAction -ConnectorsPath $ConnectorsLocation -ConnectorSettingsPath $ConnectorsSettingsLocation
       }
       catch {
         Write-Host "##vso[task.logissue type=warning;result=SucceededWithIssues]$_"
@@ -709,7 +709,7 @@ steps:
     Inline: |
       try {
         $EnvironmentDirectory = "$(EnvironmentLocation)" | Split-Path
-        & '$(System.DefaultWorkingDirectory)/Src/Release/Sentinel Deployment/Scripts/Azure.Sentinel.Playbooks.Connections.Deployment.ps1' -ResourceGroupName $(ResourceGroupName) -Path $EnvironmentDirectory
+        & '$(System.DefaultWorkingDirectory)/Src/Release/Sentinel Deployment/Scripts/Microsoft.Sentinel.Playbooks.Connections.Deployment.ps1' -ResourceGroupName $(ResourceGroupName) -Path $EnvironmentDirectory
       }
       catch {
         Write-Host "##vso[task.logissue type=warning;result=SucceededWithIssues]$_"
@@ -729,7 +729,7 @@ steps:
         $EnvironmentTablesDefinitionPath = Join-Path -Path $EnvironmentDirectory -ChildPath "Environment.Integration.Definition.json"
         if(Test-Path -Path $EnvironmentTablesDefinitionPath) {
           Write-Output $EnvironmentTablesDefinitionPath
-          $(System.DefaultWorkingDirectory)/Src/Release/Sentinel Deployment/Scripts/Azure.Sentinel.Integration.Deployment.ps1 -ResourceGroupName $(ResourceGroupName) -WorkspaceName $(ResourceName) -AutomationAccount $(AutomationAccountName) -Path "$(System.DefaultWorkingDirectory)/Src/Dev/Sentinel/Automation.DataExportRules" -EnvironmentTablesPath $EnvironmentTablesDefinitionPath
+          $(System.DefaultWorkingDirectory)/Src/Release/Sentinel Deployment/Scripts/Microsoft.Sentinel.Integration.Deployment.ps1 -ResourceGroupName $(ResourceGroupName) -WorkspaceName $(ResourceName) -AutomationAccount $(AutomationAccountName) -Path "$(System.DefaultWorkingDirectory)/Src/Dev/Sentinel/Automation.DataExportRules" -EnvironmentTablesPath $EnvironmentTablesDefinitionPath
         }
         else{
           Write-Warning "Environment Definition for Sentinel Tables not Found"
