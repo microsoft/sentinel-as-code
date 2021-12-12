@@ -108,12 +108,13 @@ steps:
     azureSubscription: '${{ parameters.ServiceConnectionName }}'
     ScriptType: 'FilePath'
     ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Sentinel/Azure.Sentinel.Export.ps1'
-    workingDirectory: $(System.DefaultWorkingDirectory)/Framework
+    workingDirectory: $(System.DefaultWorkingDirectory)
     ScriptArguments: '-ResourceGroupName $(ResourceGroupName) -WorkspaceName $(ResourceName) -AutomationAccountName $(AutomationAccountName) -Path $(Agent.TempDirectory)/Export -Format "${{ parameters.Format }}" -ClearBeforeIfExists'
     azurePowerShellVersion: 'LatestVersion'
     pwsh: true
 
 - task: PublishBuildArtifacts@1
+  displayName: Publish Exported Artifacts
   inputs:
     PathtoPublish: '$(Agent.TempDirectory)/Export'
     ArtifactName: 'AzureSentinelArtifacts'
