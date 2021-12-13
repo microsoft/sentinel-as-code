@@ -31,6 +31,6 @@ if($null -ne $AzContext)
     {
         $ClientId = $Account.Id
         $Secret = $Account.ExtendedProperties.ServicePrincipalSecret
-        New-AzureDatabricksCluster -ApplicationId $ClientId -Secret $Secret -TenantId $TenantId -SubscriptionId $SubscriptionId -ResourceGroupName $ResourceGroupName -DatabricksName $Name -DatabricksClusterName "Default" -DatabricksSparkVersion "8.1.x-scala2.12" -DatabricksPythonVersion 3 -DatabricksNodeType "Standard_D3_v2" -DatabricksMasterNodeType "Standard_D3_v2" -MinNodes $MinNodes -MaxNodes $MaxNodes -Location $Location        
+        New-AzureDatabricksCluster -ApplicationId $ClientId -Secret $Secret -TenantId $TenantId -SubscriptionId $SubscriptionId -ResourceGroupName $ResourceGroupName -DatabricksName $Name -DatabricksClusterName "Default" -DatabrickscontosoVersion "8.1.x-scala2.12" -DatabricksPythonVersion 3 -DatabricksNodeType "Standard_D3_v2" -DatabricksMasterNodeType "Standard_D3_v2" -MinNodes $MinNodes -MaxNodes $MaxNodes -Location $Location        
     }
 }

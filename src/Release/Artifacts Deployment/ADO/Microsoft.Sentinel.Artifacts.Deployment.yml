@@ -1,0 +1,193 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger: none
+pool:
+  vmImage: 'windows-latest'
+
+parameters:
+  - name: ServiceConnectionName
+    displayName: Azure Environment Connection
+    type: string  
+  - name: UsePreRelease
+    displayName: Use Powershell Pre-Release Artifacts
+    type: boolean
+    default: false
+
+variables:
+  - name: ResourceGroupName
+  - name: ResourceName
+
+steps:
+- checkout: self
+
+- task: NuGetToolInstaller@1
+  displayName: Setup Nuget Tools
+  name: NugetToolSetup
+  inputs:
+    versionSpec: 
+    checkLatest: true
+
+- task: NuGetAuthenticate@0
+  condition: succeeded()
+  displayName: Authenticating with Sentinel Nuget
+  name: NugetAuthentication
+  inputs:
+    nuGetServiceConnections: 'Microsoft Sentinel Nuget Framework Connection'
+
+- task: PowerShell@2
+  condition: succeeded()
+  displayName: Resolving Feed Url
+  name: FeedUriResolver
+  inputs:
+    targetType: 'inline'
+    script: |
+      $FeedManifest = $Env:VSS_NUGET_EXTERNAL_FEED_ENDPOINTS | ConvertFrom-Json
+      Write-Host "##vso[task.setvariable variable=FEED_URL;issecret=false;]$($FeedManifest.endpointCredentials.endpoint)"
+
+- task: PowerShell@2
+  displayName: DevOps Artifact Feed
+  condition: succeeded()
+  name: ConnectArtifactFeed
+  inputs:
+    targetType: 'inline'
+    pwsh: true
+    script: |
+      nuget.exe sources add -Name NugetFramework -Source $(FEED_URL) -Username "PAT" -Password $(VSS_NUGET_ACCESSTOKEN) 
+      $(Build.SourcesDirectory)/src/Build/Framework/Powershell.Nuget.Connect.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)" -Location $(FEED_URL) -Name NugetFramework
+      try {
+        $Credentials = $(Build.SourcesDirectory)/src/Build/Framework/Powershell.Nuget.Credentials.ps1 -NuGetApiKey "$(VSS_NUGET_ACCESSTOKEN)"
+        $AllowPrerelease = [bool]::Parse("${{ parameters.UsePreRelease }}")
+        Install-Module -Name "Azure.Deployment.Environment" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Microsoft.Sentinel.Rules" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Microsoft.Sentinel.Playbooks" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Microsoft.Sentinel.Workbooks" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Microsoft.Sentinel.Watchlist" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+        Install-Module -Name "Microsoft.Sentinel.Automation" -Repository "NugetFramework" -Scope CurrentUser -AllowPrerelease:$AllowPrerelease -Credential $Credentials
+      }
+      finally {
+        (Get-Module -Name Azure.Deployment.Environment -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Rules -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Playbooks -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Workbooks -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Watchlist -ListAvailable) | ft Name, Version
+        (Get-Module -Name Microsoft.Sentinel.Automation -ListAvailable) | ft Name, Version
+        $(Build.SourcesDirectory)/src/Build/Framework/Powershell.Nuget.Disconnect.ps1 -Name NugetFramework
+      }
+
+- task: AzurePowerShell@5
+  name: ResourceSettings
+  displayName: Resolve Sentinel Workspace
+  inputs:
+    azureSubscription: ${{ parameters.ServiceConnectionName }}
+    ScriptType: 'InlineScript'
+    Inline: |
+          Import-Module -Name $(System.DefaultWorkingDirectory)/src/Release/Common/Azure.DevOps.Extensions.psm1
+          $Environment = $(System.DefaultWorkingDirectory)/src/Release/Common/Azure.Environments.ps1 -Path $(System.DefaultWorkingDirectory)/Sentinel/Environments
+          $Environment
+          Set-AzureDevOpsVariable ResourceGroupName = $Environment.ResourceGroupName
+          Set-AzureDevOpsVariable ResourceName = $Environment.LogAnalyticsWorkspaceName
+    azurePowerShellVersion: 'LatestVersion'
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+    pwsh: true
+
+- task: AzurePowerShell@5
+  displayName: Deploy Watchlist
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'FilePath'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Watchlist.Deployment.ps1'
+    workingDirectory: $(System.DefaultWorkingDirectory)
+    ScriptArguments: '-ResourceGroup $(ResourceGroupName) -Workspace $(ResourceName) -Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ '
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+
+- task: AzurePowerShell@5
+  displayName: Deploy Analytic Rules
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'FilePath'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Alerts.Rules.Deployment.ps1'
+    workingDirectory: $(System.DefaultWorkingDirectory)
+    ScriptArguments: '-ResourceGroup $(ResourceGroupName) -Workspace $(ResourceName) -Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ -Format All'
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+
+- task: AzurePowerShell@5
+  displayName: Deploy Hunting Rules
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'FilePath'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Hunting.Rules.Deployment.ps1'
+    workingDirectory: $(System.DefaultWorkingDirectory)
+    ScriptArguments: '-ResourceGroup $(ResourceGroupName) -Workspace $(ResourceName) -Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ -Format All'
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+
+- task: AzurePowerShell@5
+  displayName: Sentinel Environment Variables 
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'FilePath'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Common/Azure.Deployment.Environment.ps1'
+    workingDirectory: $(System.DefaultWorkingDirectory)
+    ScriptArguments: '-ResourceGroupName $(ResourceGroupName) -Path $(Agent.TempDirectory)/Settings.json'
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+
+- task: AzurePowerShell@5
+  displayName: Deploy Runbooks
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'FilePath'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Azure.Automation.Runbooks.Deployment.ps1'
+    workingDirectory: $(System.DefaultWorkingDirectory)
+    ScriptArguments: '-Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ -SettingsFile $(Agent.TempDirectory)/Settings.json'
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+
+- task: AzurePowerShell@5
+  displayName: Deploy Playbooks
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'FilePath'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Playbooks.Deployment.ps1'
+    workingDirectory: $(System.DefaultWorkingDirectory)
+    ScriptArguments: '-Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ -SettingsFile $(Agent.TempDirectory)/Settings.json'
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+
+- task: AzurePowerShell@5
+  displayName: Deploy Automation Rules
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'FilePath'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Automation.Rules.Deployment.ps1'
+    workingDirectory: $(System.DefaultWorkingDirectory)
+    ScriptArguments: '-ResourceGroup $(ResourceGroupName) -Workspace $(ResourceName) -Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ -SettingsFile $(Agent.TempDirectory)/Settings.json -Format All'
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+
+- task: AzurePowerShell@5
+  displayName: Deploy Alert-Playbook Connections
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'FilePath'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Alerts.RulesPlaybookConnection.Deployment.ps1'
+    workingDirectory: $(System.DefaultWorkingDirectory)
+    ScriptArguments: '-ResourceGroup $(ResourceGroupName) -Workspace $(ResourceName) -Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ -Format All -SettingsFile $(Agent.TempDirectory)/Settings.json'
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+
+- task: AzurePowerShell@5
+  displayName: Deploy Workbooks
+  inputs:
+    azureSubscription: '${{ parameters.ServiceConnectionName }}'
+    ScriptType: 'FilePath'
+    ScriptPath: '$(System.DefaultWorkingDirectory)/src/Release/Artifacts Deployment/Scripts/Microsoft.Sentinel.Workbooks.Deployment.ps1'
+    workingDirectory: $(System.DefaultWorkingDirectory)
+    ScriptArguments: '-ResourceGroup $(ResourceGroupName) -Workspace $(ResourceName) -Path $(System.DefaultWorkingDirectory)/Sentinel/mitre-use-cases/ '
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true

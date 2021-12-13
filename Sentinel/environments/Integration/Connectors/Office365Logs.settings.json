@@ -1,0 +1,9 @@
+{
+    "Sharepoint": "Enabled",
+    "Exchange" :  "Enabled",
+    "Teams":  "Enabled",
+    "KeyVault": "socdap-test-sentinel-kv",
+    "SecretName": "ImpersonationCredentials",
+    "ImpersonationEnabled": true 
+}
+

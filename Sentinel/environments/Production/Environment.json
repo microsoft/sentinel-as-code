@@ -1,0 +1,25 @@
+{
+    "SubscriptionId":  "30ecb500-972c-46a3-9d0f-e2d2c384c47e",
+    "Name" : "Pro",
+    "NamingConvention" : "soc-{Prefix}contoso{EnvironmentName}-{Suffix}",
+    "Location":  "westeurope",
+    "ResourceGroup" : {
+        "Type" : "Automatic"
+    },
+    "Resources" : 
+    {
+        "Sentinel": 
+        {
+            "Type" : "Automatic"
+        },
+        "Automation": 
+        {
+            "Type" : "Automatic"
+        },
+        "Integration": 
+        {
+            "Type" : "Automatic",
+            "MaxEventHubNamespaces" : 5             
+        }
+    }
+}

@@ -24,7 +24,7 @@ function New-AzureDatabricksCluster {
         $DatabricksClusterName,
         [Parameter(Mandatory = $true)]
         [string]
-        $DatabricksSparkVersion,    
+        $DatabrickscontosoVersion,    
         [Parameter(Mandatory = $false)]
         [string]
         $DatabricksPythonVersion = 3,
@@ -52,7 +52,7 @@ function New-AzureDatabricksCluster {
     Connect-Databricks -ApplicationId $ApplicationId -Secret $Secret -TenantId $TenantId -SubscriptionId $SubscriptionId -ResourceGroupName $ResourceGroupName -WorkspaceName $DatabricksName -Region $Location
     $BearerTokenVault = New-DatabricksBearerToken -LifetimeSeconds 3600 -Comment "DevOps Bearer Token"
     $BearerToken = $BearerTokenVault.token_value
-    $ClusterId = New-DatabricksCluster -BearerToken $BearerToken -Region $Location -ClusterName $DatabricksClusterName -SparkVersion $DatabricksSparkVersion -NodeType $DatabricksNodeType -DriverNodeType $DatabricksMasterNodeType -MinNumberOfWorkers $MinNodes -MaxNumberOfWorkers $MaxNodes -AutoTerminationMinutes $AutoTerminationTimeOut -PythonVersion $DatabricksPythonVersion
+    $ClusterId = New-DatabricksCluster -BearerToken $BearerToken -Region $Location -ClusterName $DatabricksClusterName -contosoVersion $DatabrickscontosoVersion -NodeType $DatabricksNodeType -DriverNodeType $DatabricksMasterNodeType -MinNumberOfWorkers $MinNodes -MaxNumberOfWorkers $MaxNodes -AutoTerminationMinutes $AutoTerminationTimeOut -PythonVersion $DatabricksPythonVersion
     do {
         $Cluster = Get-DatabricksClusters -BearerToken $BearerToken -Region $Location -ClusterId $ClusterId
         Write-Output "Status: $($Cluster.state) with message: $($Cluster.state_message)" 

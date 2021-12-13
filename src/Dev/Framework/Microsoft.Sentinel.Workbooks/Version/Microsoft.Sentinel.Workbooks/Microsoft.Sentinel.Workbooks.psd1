@@ -2,7 +2,7 @@
 @{
 
     # Script module or binary module file associated with this manifest.
-    RootModule = 'Azure.Sentinel.Workbooks.psm1'
+    RootModule = 'Microsoft.Sentinel.Workbooks.psm1'
     
     # Version number of this module.
     ModuleVersion = '[Version]'

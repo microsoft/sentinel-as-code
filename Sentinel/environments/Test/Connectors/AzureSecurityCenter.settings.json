@@ -1,0 +1,8 @@
+{
+    "Subscriptions": [
+        "d75695ac-29e2-4d42-b940-d5281eb6bd08"
+    ],
+    "KeyVault": "managementakv",
+    "SecretName": "Credential",
+    "ImpersonationEnabled": true 
+}

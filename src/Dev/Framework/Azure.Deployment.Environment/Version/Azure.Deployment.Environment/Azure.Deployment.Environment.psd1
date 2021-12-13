@@ -17,13 +17,13 @@
     GUID = 'a3ab1a13-9d70-4fc3-bfaf-01c24ff8f360'
     
     # Author of this module
-    Author = 'NESTLE Azure DevOps'
+    Author = 'contoso Azure DevOps'
     
     # Company or vendor of this module
-    CompanyName = 'NESTLE'
+    CompanyName = 'contoso'
     
     # Copyright statement for this module
-    Copyright = '(c) NESTLE Powershell. All rights reserved.'
+    Copyright = '(c) contoso Powershell. All rights reserved.'
     
     # Description of the functionality provided by this module
     Description = 'Experimental Module for Manage Deployment Environments'

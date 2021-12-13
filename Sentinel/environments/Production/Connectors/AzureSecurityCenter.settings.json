@@ -1,0 +1,8 @@
+{
+    "Subscriptions": [
+        "9e69aea0-07b2-41b4-8925-db3dd01c7c4f"
+    ],
+    "KeyVault": "socdapweprodsentinelakv",
+    "SecretName": "Credential",
+    "ImpersonationEnabled": false 
+}
